@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import ThreeDotAnimation from "@/components/ThreeDotAnimation";
+import React from 'react';
+
+
 
 const Login = () => {
   const router = useRouter();
@@ -41,77 +44,77 @@ const Login = () => {
         }
       })
       .catch((error) => {
-      
+
         setLoading(false);
       });
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950/25">
-      <div className="bg-slate-950/25 p-8 rounded-lg shadow-md w-96 text-white">
-        <h2 className="text-2xl font-semibold mb-4">
-          {loading ? <ThreeDotAnimation text="Login" /> : "Login"}
-        </h2>
-        {error && <p className="text-orange-700">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-gray-600">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-slate-950/25 text-white border-indigo-500"
-              placeholder="Your Email"
-              required
-              onChange={handleEmailChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-600">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-slate-950/25 text-white border-indigo-500"
-              placeholder="Password"
-              onChange={handlePasswordChange}
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                className="text-indigo-500 form-checkbox"
-              />
-              <span className="ml-2 text-gray-600">Remember me</span>
-            </label>
-          </div>
-
-          <div>
-            <button
-              className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-300"
-              type="submit"
-            >
-              Login
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-4 text-center">
-          <p className="text-gray-600">
-            Don&apos;t have an account?{" "}
-            <Link href={"/signup"} className="text-indigo-500">
-              Sign up
-            </Link>
-          </p>
+  return (<div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/homepagehero2.jpg")' }}>
+    <div className="bg-transparent p-8 rounded-lg shadow-md w-96 text-white">
+      <h2 className="text-2xl font-semibold mb-4">
+        {loading ? <ThreeDotAnimation text="Connexion" /> : "Connexion"}
+      </h2>
+      {error && <p className="text-red-500">{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-600">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-transparent text-white border-white"
+            placeholder="Adresse email"
+            required
+            onChange={handleEmailChange}
+          />
         </div>
+        <div className="mb-4">
+          <label htmlFor="password" className="block text-gray-600">
+            Mot de passe
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-transparent text-white border-white"
+            placeholder="Mot de passe "
+            onChange={handlePasswordChange}
+            required
+          />
+        </div>
+        <div className="mb-6">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="text-indigo-500 form-checkbox"
+            />
+            <span className="ml-2 text-gray-600">Se souvenir de moi</span>
+          </label>
+        </div>
+
+        <div>
+          <button
+            className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300"
+            type="submit"
+          >
+            Se connecter
+          </button>
+        </div>
+      </form>
+
+      <div className="mt-4 text-center">
+        <p className="text-gray-600">
+          Don&apos;t have an account?{" "}
+          <Link href={"/signup"} className="text-indigo-500">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
+  </div>
+
   );
 };
 
