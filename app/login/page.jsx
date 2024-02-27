@@ -49,7 +49,7 @@ const Login = () => {
       });
   };
 
-  return (<div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/homepagehero2.jpg")' }}>
+  return (<div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
     <div className="bg-transparent p-8 rounded-lg shadow-md w-96 text-white">
       <h2 className="text-2xl font-semibold mb-4">
         {loading ? <ThreeDotAnimation text="Connexion" /> : "Connexion"}
