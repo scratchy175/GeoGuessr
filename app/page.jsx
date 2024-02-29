@@ -91,33 +91,8 @@ export default function Home() {
           )}
         </div>
       ) : (
-        <div className="flex justify-end items-center absolute top-0 right-0 p-4">
-          <Link
-            href="/login"
-            className="hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-            style={{ fontWeight: 600, fontFamily: 'Dosis, sans-serif' }}
-          >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="ml-2 hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-            style={{ fontWeight: 600, fontFamily: 'Dosis, sans-serif' }}
-          >
-            S'inscrire
-          </Link>
-          <Link
-            href="/about"
-            className="ml-2 hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-            style={{ fontWeight: 600, fontFamily: 'Dosis, sans-serif' }}
-          >
-            About
-          </Link>
+       <></>
 
-
-
-
-        </div>
 
 
 

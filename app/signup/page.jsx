@@ -42,12 +42,12 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
-      <div className="bg-slate-950/25 p-8 rounded-lg shadow-md w-96 text-white">
+      <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-md w-96 text-gray-800">
         <form onSubmit={handleSubmit}>
           <h2 className="text-2xl font-semibold mb-4">
             {loading ? <ThreeDotAnimation text="Signup" /> : "Signup"}
           </h2>
-          {error && <p className="text-orange-700">{error}</p>}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <div className="mb-4">
             <label htmlFor="name" className="block text-gray-600">
@@ -57,7 +57,7 @@ export default function Signup() {
               type="text"
               id="username"
               name="username"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-slate-950/25 text-white border-indigo-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
               placeholder="Your Username"
               onChange={handleUsernameChange}
               required
@@ -71,7 +71,7 @@ export default function Signup() {
               type="email"
               id="email"
               name="email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-slate-950/25 text-white border-indigo-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
               placeholder="Your Email"
               onChange={handleEmailChange}
               required
@@ -85,7 +85,7 @@ export default function Signup() {
               type="password"
               id="password"
               name="password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-slate-950/25 text-white border-indigo-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
               placeholder="Password"
               onChange={handlePasswordChange}
               required
@@ -105,9 +105,12 @@ export default function Signup() {
                 </a>
               </span>
             </label>
-            <Link className="text-indigo-500" rel="stylesheet" href="/login">
+            <p className="text-gray-600">
               Already Have An Account?{" "}
-            </Link>
+              <Link href="/login" className="text-indigo-500">
+                Login
+              </Link>
+            </p>
           </div>
           <div>
             <button

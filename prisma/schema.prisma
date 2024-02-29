@@ -12,4 +12,13 @@ model User {
   username           String             @unique
   email              String             @unique
   password           String
+  scores Score[]
 }
+model Score {
+  id                 Int                @id @default(autoincrement())
+  player   User @relation(fields: [userid], references: [id])
+  userid             Int             @unique
+  Score              Int              
+  classement         Int                
+}
+

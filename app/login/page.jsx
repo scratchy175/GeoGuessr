@@ -49,72 +49,70 @@ const Login = () => {
       });
   };
 
-  return (<div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
-    <div className="bg-transparent p-8 rounded-lg shadow-md w-96 text-white">
-      <h2 className="text-2xl font-semibold mb-4">
-        {loading ? <ThreeDotAnimation text="Connexion" /> : "Connexion"}
-      </h2>
-      {error && <p className="text-red-500">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-600">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-transparent text-white border-white"
-            placeholder="Adresse email"
-            required
-            onChange={handleEmailChange}
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="password" className="block text-gray-600">
-            Mot de passe
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 bg-transparent text-white border-white"
-            placeholder="Mot de passe "
-            onChange={handlePasswordChange}
-            required
-          />
-        </div>
-        <div className="mb-6">
-          <label className="flex items-center">
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: 'url("/planete.jpg")' }}
+    >
+      <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-md w-96 text-gray-800">
+        <h2 className="text-2xl font-semibold mb-4">
+          {loading ? <ThreeDotAnimation text="Connexion" /> : "Connexion"}
+        </h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-gray-600">
+              Email
+            </label>
             <input
-              type="checkbox"
-              className="text-indigo-500 form-checkbox"
+              type="email"
+              id="email"
+              name="email"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Adresse email"
+              required
+              onChange={handleEmailChange}
             />
-            <span className="ml-2 text-gray-600">Se souvenir de moi</span>
-          </label>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-gray-600">
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Mot de passe"
+              onChange={handlePasswordChange}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="flex items-center">
+              <input type="checkbox" className="text-indigo-500 form-checkbox" />
+              <span className="ml-2 text-gray-600">Se souvenir de moi</span>
+            </label>
+          </div>
+          <div>
+            <button
+              className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300"
+              type="submit"
+            >
+              Se connecter
+            </button>
+          </div>
+        </form>
+        <div className="mt-4 text-center">
+          <p className="text-gray-600">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-indigo-500">
+              Sign up
+            </Link>
+          </p>
         </div>
-
-        <div>
-          <button
-            className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300"
-            type="submit"
-          >
-            Se connecter
-          </button>
-        </div>
-      </form>
-
-      <div className="mt-4 text-center">
-        <p className="text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link href={"/signup"} className="text-indigo-500">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
-  </div>
-
   );
 };
 
