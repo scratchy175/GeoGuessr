@@ -44,7 +44,7 @@ export default function Home() {
       <div className="relative h-screen">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
-            <h1 className="text-4xl font-bold mb-4">Bienvenue dans votre jeu</h1>
+            <h1 className="text-4xl font-bold mb-4">Bienvenue</h1>
             <div>
               <button className="bg-orange-500 hover:bg-blue-500 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">Jouer</button>
             </div>
