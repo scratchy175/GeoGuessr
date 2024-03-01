@@ -1,8 +1,7 @@
-"use client";
-import Image from "next/image";
+"use client"
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { signOut, getSession } from "next-auth/react";
+import { getSession } from "next-auth/react";
 
 export default function Profile() {
   const [session, setSession] = useState(null);
@@ -30,19 +29,26 @@ export default function Profile() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/planete.jpg')" }}>
-      <div className="bg-white shadow-md rounded-lg p-6 w-80">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">User Data</h2>
+    <div className="h-screen w-full bg-gray-50 flex justify-center items-center">
+      <div className="h-100 mx-4 w-100 bg-blue-400 rounded-3xl shadow-md sm:w-72 sm:mx-0">
+        <div className="h-1/2 w-full flex justify-center items-center px-3 py-5">
+          <h1 className="text-white font-bold text-center">WELCOME TO YOUR PROFILE</h1>
         </div>
-        <div className="space-y-2">
-          <p><span className="font-bold">Username:</span> {username}</p> {/* Display username */}
-          <p><span className="font-bold">Email:</span> {email}</p> {/* Display email */}
-          <p><span className="font-bold">ID:</span> {id}</p> {/* Display ID */}
+
+        <div className="bg-white h-100 w-full rounded-3xl flex flex-col justify-around items-center">
+          <div className="w-full h-1/2 flex flex-col justify-center items-center">
+            <p className="text-gray-700 font-bold">Username:{username}</p>
+            <p className="text-gray-500 text-sm font-bold"></p>
+          </div>
+          <div className="w-full h-1/2 flex flex-col justify-center items-center">
+            <p className="text-gray-700 font-bold">Email:{email}</p>
+            <p className="text-gray-500 text-sm font-bold"></p>
+            <p className="text-gray-700 font-bold">ID:{id}</p>
+          </div>
         </div>
         <div className="mt-4">
           <Link href="/edit-profile">
-            <span className="text-indigo-500 hover:underline cursor-pointer">Edit Profile</span>
+            <span className="text-white text-center block py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg cursor-pointer">Edit Profile</span>
           </Link>
         </div>
       </div>
