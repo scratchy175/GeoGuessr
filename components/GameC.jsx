@@ -53,6 +53,9 @@ const GameComponent = () => {
     });
   }, []);
   
+
+
+
   const showRandomStreetView = (features) => {
     if (!features.length) {
       console.error("No features available in GeoJSON data.");
@@ -62,7 +65,7 @@ const GameComponent = () => {
     const bbox = turfBbox(randomFeature);
     const randomPt = randomPoint(1, { bbox: bbox }).features[0];
     const location = { lat: randomPt.geometry.coordinates[1], lng: randomPt.geometry.coordinates[0] };
-    streetViewServiceRef.current.getPanorama({location: location, preference: 'best', radius: 100000, source: 'outdoor'}, (data, status) => {
+    streetViewServiceRef.current.getPanorama({ location: location, radius: 5000 }, (data, status) => {
       if (status === google.maps.StreetViewStatus.OK) {
         streetViewPanorama.setPano(data.location.pano);
         streetViewPanorama.setVisible(true);
@@ -71,15 +74,7 @@ const GameComponent = () => {
         console.error("No Street View panorama found for this location.");
       }
     });
-
-
-  return (
-    <div>
-      <div ref={mapElementRef} style={{ height: '400px', width: '100%' }}></div>
-      <div ref={streetViewElementRef} style={{ height: '400px', width: '100%' }}></div>
-    </div>
-  );
-};
+  };
 
   return (
     <div>

@@ -33,6 +33,7 @@ const GameComponent = () => {
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
   const streetViewPanorama = useRef(null);
+  
 
   useEffect(() => {
     const initMap = async () => {
