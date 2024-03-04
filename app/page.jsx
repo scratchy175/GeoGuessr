@@ -5,11 +5,14 @@ import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { signOut, getSession } from "next-auth/react";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import footer from "@/components/footer";
 
-
+// Function to generate a random ID (simple example)
+function generateRandomID() {
+  return Math.random().toString(36).substring(2, 9);
+}
 
 
 export default function Home() {
@@ -39,6 +42,13 @@ export default function Home() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const router = useRouter();
+
+  const handlePlayClick = () => {
+    const randomID = generateRandomID();
+    router.push(`/game/${randomID}`);
+  };
   return (
     <>
       <div className="relative h-screen">
@@ -46,9 +56,12 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
             <h1 className="text-4xl font-bold mb-4">Bienvenue</h1>
             <div>
-              <Link href="/play">
-              <button className="bg-orange-500 hover:bg-blue-500 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">Jouer</button>
-              </Link>
+              <button
+                onClick={handlePlayClick}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Play
+              </button>
             </div>
           </div>
         </div>
