@@ -22,7 +22,7 @@ const generateRandomPointInFeature = (feature) => {
   let randomPoint;
   const bboxObj = bbox(feature);
   do {
-    randomPoint = randomPosition({bbox: bboxObj});
+    randomPoint = randomPosition({ bbox: bboxObj });
   } while (!booleanPointInPolygon(randomPoint, feature));
   return randomPoint;
 };
@@ -33,7 +33,7 @@ const GameComponent = () => {
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
   const streetViewPanorama = useRef(null);
-  
+
 
   useEffect(() => {
     const initMap = async () => {
@@ -74,7 +74,7 @@ const GameComponent = () => {
 
     if (streetViewServiceRef.current) {
       streetViewServiceRef.current.getPanorama(
-        {location: {lat: randomLocation[1], lng: randomLocation[0]}, preference: 'nearest', radius: 100000, source: 'outdoor'}, 
+        { location: { lat: randomLocation[1], lng: randomLocation[0] }, preference: 'nearest', radius: 100000, source: 'outdoor' },
         (data, status) => processSVData(data, status, features, attempt, randomFeatureIndex)
       );
     }
@@ -93,9 +93,24 @@ const GameComponent = () => {
   }, [showRandomStreetView]);
 
   return (
-    <div>
-      <div ref={mapElementRef} style={{ height: '400px', width: '100%' }}></div>
-      <div ref={streetViewElementRef} style={{ height: '400px', width: '100%' }}></div>
+    <div class="h-screen">
+      <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 mx-2.5 z-10">
+        <span class="bg-blue-500 py-1.5 px-2.5 rounded mx-auto">
+          Timer
+        </span>
+        <span class="bg-green-500 py-1.5 px-2.5 rounded">
+          Score
+        </span>
+      </div>
+      <div ref={streetViewElementRef} className="w-full h-full relative">
+        <div className="absolute w-1/5 bottom-2.5 left-2.5 z-10">
+          <div ref={mapElementRef} className="h-72 w-full rounded-lg shadow-none border-none">
+          </div>
+          <button id="guessButton" className="w-full py-2.5 mt-2.5 text-lg cursor-pointer border-none rounded-lg bg-blue-600 text-white shadow-md transition ease-in-out delay-150 bg-blue-500 hover:-translate-1 hover:scale-105 hover:bg-indigo-500 duration-75">
+            Guess
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
