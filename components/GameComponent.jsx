@@ -45,6 +45,7 @@ const GameComponent = () => {
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
   const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
+  const mapRef = useRef(null);
 
   useEffect(() => {
     const initMap = async () => {
@@ -56,7 +57,7 @@ const GameComponent = () => {
         await loader.load();
         const { google } = window;
         const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
-        //mapRef.current = map; // Store the map object in useRef
+        mapRef.current = map; // Store the map object in useRef
 
 
         loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
@@ -184,8 +185,10 @@ const GameComponent = () => {
   };
 
 
-
-
+  //function to change zoom of the map by clicking on a button
+  const changeZoom = () => {
+    mapRef.current.setZoom(mapRef.current.zoom + 2);
+  }
   return (
     <div class="flex h-screen">
       <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
@@ -213,7 +216,7 @@ const GameComponent = () => {
           alt="logo"
         />
       </div>
-      {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
+      {/*<div ref={streetViewElementRef} className="w-full h-full relative"></div>*/}
       <div className="absolute w-1/5 bottom-2.5 left-2.5 z-10 "
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -238,7 +241,14 @@ const GameComponent = () => {
           className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
           Decrease Map Size
         </button>
-
+        <button onClick={changeZoom}
+          style={{
+            opacity: isHovered ? 1 : 0,
+            transition: 'all 0.3s ease',
+          }}
+          className="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+          Change Zoom
+        </button>
 
         <div
           ref={mapElementRef}
