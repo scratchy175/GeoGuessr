@@ -50,6 +50,7 @@ const GameComponent = () => {
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
   const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
   const mapRef = useRef(null);
+  const [isPinned, setIsPinned] = useState(false);
 
   useEffect(() => {
     const initMap = async () => {
@@ -172,6 +173,9 @@ const GameComponent = () => {
 
 
   const onMouseEnter = () => {
+    if (isPinned){
+      return;
+    }
     // Clear any existing timeout to prevent unwanted size reset if we hover again before the timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
@@ -181,7 +185,9 @@ const GameComponent = () => {
   };
 
   const onMouseLeave = () => {
-    // Set a timeout to reset the hover state after a delay
+    if (isPinned){
+      return;
+    }    // Set a timeout to reset the hover state after a delay
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
       hoverTimeoutRef.current = null;
@@ -197,6 +203,18 @@ const GameComponent = () => {
   const ZoomOut = () => {
     mapRef.current.setZoom(mapRef.current.zoom - 1);
 
+  }
+
+  const pinMap = () => {
+    setIsPinned(!isPinned);
+    // if is pinned rotate the image to the right
+    if (isPinned){
+      document.getElementById('pinButton').style.transform = 'rotate(90deg)';
+    }
+    // if is not pinned rotate the image to the left
+    else{
+      document.getElementById('pinButton').style.transform = 'rotate(0deg)';
+    }
   }
 
   return (
@@ -226,7 +244,7 @@ const GameComponent = () => {
           alt="logo"
         />
       </div>
-      {/*<div ref={streetViewElementRef} className="w-full h-full relative"></div>*/}
+      {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
       <div className="absolute bottom-5 left-5 z-10"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -265,7 +283,8 @@ const GameComponent = () => {
             height={20}
           />
         </button>
-        <button onClick={decreaseMapSize}
+        <button id = "pinButton"
+        onClick={pinMap}
           style={{
             opacity: isHovered ? 1 : 0,
             transition: 'all 0.3s ease',
