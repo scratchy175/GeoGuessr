@@ -6,6 +6,10 @@ import { randomPosition } from '@turf/random';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
 import logo from "@/public/logo.png";
+import plus from "@/public/Plus_black.svg";
+import minus from "@/public/Minus_black.svg";
+import arrow from "@/public/Arrow.svg";
+import stick from "@/public/World_Game_Stick.svg";
 
 const fetchGeoJsonData = async () => {
   try {
@@ -137,15 +141,15 @@ const GameComponent = () => {
     setIsDecreaseDisabled(false);
 
     setMapSize(currentSize => ({
-      width: `${parseInt(currentSize.width) * 1.1}px`, // Increase width by 10%
-      height: `${parseInt(currentSize.height) * 1.1}px`, // Increase height by 10%
+      width: `${parseInt(currentSize.width) * 1.5}px`, // Increase width by 10%
+      height: `${parseInt(currentSize.height) * 1.5}px`, // Increase height by 10%
     }));
   };
 
   const decreaseMapSize = () => {
     setMapSize(currentSize => {
-      const newWidth = parseInt(currentSize.width) / 1.1;
-      const newHeight = parseInt(currentSize.height) / 1.1;
+      const newWidth = parseInt(currentSize.width) / 1.5;
+      const newHeight = parseInt(currentSize.height) / 1.5;
 
       // Check if the new size is below the minimum
       if (newWidth <= 300 || newHeight <= 200) {
@@ -181,28 +185,34 @@ const GameComponent = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 200); // Delay in milliseconds (e.g., 2000ms = 2 seconds)
+    }, 1000); // Delay in milliseconds (e.g., 2000ms = 2 seconds)
   };
 
 
   //function to change zoom of the map by clicking on a button
-  const changeZoom = () => {
-    mapRef.current.setZoom(mapRef.current.zoom + 2);
+  const ZoomIn = () => {
+    mapRef.current.setZoom(mapRef.current.zoom + 1);
+
   }
+  const ZoomOut = () => {
+    mapRef.current.setZoom(mapRef.current.zoom - 1);
+
+  }
+
   return (
     <div class="flex h-screen">
       <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
         <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-          <div class="">
-            <div class="text-xs uppercase text-stone-800">Carte</div>
+          <div class="text-white">
+            <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
             <div class="text-lg font-bold">World</div>
           </div>
           <div class="text-white">
-            <div class="text-xs uppercase text-stone-800">Round</div>
+            <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
             <div class="text-lg font-bold">4 / 5</div>
           </div>
           <div class="text-white">
-            <div class="text-xs uppercase text-stone-800">Score</div>
+            <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
             <div class="text-lg font-bold">61</div>
           </div>
         </div>
@@ -217,38 +227,95 @@ const GameComponent = () => {
         />
       </div>
       {/*<div ref={streetViewElementRef} className="w-full h-full relative"></div>*/}
-      <div className="absolute w-1/5 bottom-2.5 left-2.5 z-10 "
+      <div className="absolute bottom-5 left-5 z-10"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
+        <div class="relative bg-black p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+          style={{
+            opacity: isHovered ? 1 : 0,
+            transition: 'all 0.3s ease',
+          }}>
 
         <button onClick={increaseMapSize}
           style={{
             opacity: isHovered ? 1 : 0,
             transition: 'all 0.3s ease',
+            transform: 'rotate(225deg)',
           }}
-
-          className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Increase Map Size
+          className="bg-white rounded-full z-30">
+            <Image src={arrow}
+            alt="arrow"
+            width={20}
+            height={20}
+          />
         </button>
         <button onClick={decreaseMapSize}
           disabled={isDecreaseDisabled}
           style={{
             opacity: isHovered ? 1 : 0,
-            backgroundColor: isDecreaseDisabled ? 'gray' : 'red',
+            backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
             transition: 'all 0.3s ease',
+            transform: 'rotate(45deg)',
           }}
-          className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-          Decrease Map Size
+          className="rounded-full z-30">
+          <Image src={arrow}
+            alt="arrow"
+            width={20}
+            height={20}
+          />
         </button>
-        <button onClick={changeZoom}
+        <button onClick={decreaseMapSize}
           style={{
             opacity: isHovered ? 1 : 0,
             transition: 'all 0.3s ease',
+            weight: '20px',
+            height: '20px',
+            
           }}
-          className="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-          Change Zoom
+          className="bg-white rounded-full z-30">
+          <Image src={stick}
+            alt="stick"
+            width={20}
+            height={20}
+            color='transparent'
+          />
         </button>
+        </div>
+
+        <div class="relative z-20">
+          <button onClick={ZoomIn}
+            style={{
+              transition: 'all 0.3s ease',
+              right: '10px',
+              top: '10px',
+              weight: '20px',
+              height: '20px',
+            }}
+            className="absolute bg-white rounded-full shadow-md">
+            <Image src={plus}
+              alt="plus"
+              width={18}
+              height={18}
+            />
+          </button>
+          <button onClick={ZoomOut}
+          style={{
+            transition: 'all 0.3s ease',
+            right: '10px',
+            top: '30px',
+            weight: '20px',
+            height: '20px',
+          }}
+            className="absolute rounded-full bg-white shadow-md">
+            <Image src={minus}
+              alt="minus"
+              width={18}
+              height={18}
+
+            />
+          </button>
+        </div>
 
         <div
           ref={mapElementRef}
@@ -256,8 +323,10 @@ const GameComponent = () => {
             width: isHovered ? mapSize.width : '250px',
             height: isHovered ? mapSize.height : '150px',
             transition: 'all 0.3s ease',
+            minHeight: '150px',
+            minWidth: '250px',
           }}
-          className="map-container"
+          className="relative map-container"
         >
           {/* Map will be rendered here */}
         </div>
@@ -266,9 +335,7 @@ const GameComponent = () => {
             width: isHovered ? mapSize.width : '250px',
             transition: 'all 0.3s ease',
           }}
-
-
-          className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-lg text-stone-800 shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:-translate-y-1 hover:scale-102 hover:bg-yellow-950 duration-75">
+          className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75">
           Guess
         </button>
       </div>
