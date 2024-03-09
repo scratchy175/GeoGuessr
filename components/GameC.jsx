@@ -1,182 +1,374 @@
 "use client"
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
-import turfBbox from '@turf/bbox';
-import { randomPoint } from '@turf/random';
-import turfBooleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import bbox from '@turf/bbox';
+import { randomPosition } from '@turf/random';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import Image from "next/image";
+import logo from "@/public/logo.png";
+import plus from "@/public/Plus_black.svg";
+import minus from "@/public/Minus_black.svg";
+import arrow from "@/public/Arrow.svg";
+import stick from "@/public/World_Game_Stick.svg";
+
+const fetchGeoJsonData = async () => {
+  try {
+    const response = await fetch('/countries.geojson');
+    if (!response.ok) {
+      throw new Error('Network response was not ok.');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error loading the GeoJSON file:", error);
+    throw error; // Re-throw to be caught by calling function
+  }
+};
+
+const generateRandomPointInFeature = (feature) => {
+  let randomPoint;
+  const bboxObj = bbox(feature);
+  do {
+    randomPoint = randomPosition({ bbox: bboxObj });
+  } while (!booleanPointInPolygon(randomPoint, feature));
+  return randomPoint;
+};
+
+async function loadAdvancedMarkerLibrary() {
+  const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+  return AdvancedMarkerElement;
+}
 
 const GameComponent = () => {
   const mapElementRef = useRef(null);
   const streetViewElementRef = useRef(null);
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
-  
-  const fetchGeoJsonData = async () => {
-    console.log("Fetching GeoJSON data...");
-    try {
-          const response = await fetch('/countries.geojson') // Make sure this path is correct and accessible
-              ;
-          const data = await response.json();
-          console.log("Fetched GeoJSON Data:", data); // Verify data is fetched
-          setGlobalGeoJsonData(data);
-          return data;
-      } catch (error) {
-          return console.error("Error loading the GeoJSON file:", error);
-      }
-  };
-  
+  const streetViewPanorama = useRef(null);
+  const [mapSize, setMapSize] = useState({ width: '250', height: '150' }); // Use string to concatenate easily
+  const [isHovered, setIsHovered] = useState(false);
+  const hoverTimeoutRef = useRef(null);
+  const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
+  const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
+  const mapRef = useRef(null);
+  const [isPinned, setIsPinned] = useState(false);
+  const [isLoading, setIsLoaded] = useState(false);
+
   useEffect(() => {
-    const loader = new Loader({
-      apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Use your actual API key
-      version: "weekly",
-    });
-  
-    loader.load().then(() => {
-      const { google } = window;
-      const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2 });
-      const streetViewPanorama = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
-        pov: { heading: 0, pitch: 0 },
-        disableDefaultUI: true,
-        zoomControl: true,
-      });
-      console.log("Map and Street View Panorama initialized.uvyjgjgyig");
-      streetViewServiceRef.current = new google.maps.StreetViewService();
-      console.log(globalGeoJsonData);
-      // Fetch and use the GeoJSON data
-      fetchGeoJsonData().then((data) => {
-        // Use the data directly after it's fetched
-        console.log("GeoJSON data loaded.", data, globalGeoJsonData);
-        if (data) {
-          showRandomStreetView(data.features);
-        }
-      });
-    });
+    console.log(mapElementRef.current); 
+    const initMap = async () => {
+      try {
+        const loader = new Loader({
+          apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Replace with your actual API key
+          version: "weekly",
+        });
+        await loader.load();
+        const { google } = window;
+        const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
+        mapRef.current = map; // Store the map object in useRef
+
+
+        loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+          map.addListener('click', (e) => {
+            if (window.marker) {
+              window.marker.setMap(null);
+            }
+
+            // Creating an instance of AdvancedMarkerElement
+            window.marker = new AdvancedMarkerElement({
+              position: e.latLng,
+              map: map,
+              title: "Your Title Here", // Optional
+              // Additional properties based on AdvancedMarkerElementOptions
+            });
+            window.marker.content.innerHTML = imgElement
+
+
+            // Optional: Listen to events on the AdvancedMarkerElement
+            window.marker.addListener('click', () => {
+              console.log('AdvancedMarker clicked');
+              // Handle click event
+            });
+          });
+        });
+
+
+        streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
+          pov: { heading: 0, pitch: 0 },
+          disableDefaultUI: true,
+          zoomControl: true,
+        });
+
+        streetViewServiceRef.current = new google.maps.StreetViewService();
+
+        const data = await fetchGeoJsonData();
+        setGlobalGeoJsonData(data);
+        showRandomStreetView(data.features);
+      } catch (error) {
+        console.error("Failed to initialize map or fetch GeoJSON:", error);
+      }
+    };
+
+    initMap();
   }, []);
-  
 
-
-
-  const showRandomStreetView = (features) => {
+  const showRandomStreetView = useCallback((features, attempt = 0) => {
     if (!features.length) {
-      console.error("No features available in GeoJSON data.");
+      console.error("No features available.");
       return;
     }
-    const randomFeature = features[Math.floor(Math.random() * features.length)];
-    const bbox = turfBbox(randomFeature);
-    const randomPt = randomPoint(1, { bbox: bbox }).features[0];
-    const location = { lat: randomPt.geometry.coordinates[1], lng: randomPt.geometry.coordinates[0] };
-    streetViewServiceRef.current.getPanorama({ location: location, radius: 5000 }, (data, status) => {
-      if (status === google.maps.StreetViewStatus.OK) {
-        streetViewPanorama.setPano(data.location.pano);
-        streetViewPanorama.setVisible(true);
-        console.log("Street View panorama found and set.");
-      } else {
-        console.error("No Street View panorama found for this location.");
+    const randomFeatureIndex = Math.floor(Math.random() * features.length);
+    const randomFeature = features[randomFeatureIndex];
+    const randomLocation = generateRandomPointInFeature(randomFeature);
+
+    if (streetViewServiceRef.current) {
+      streetViewServiceRef.current.getPanorama(
+        { location: { lat: randomLocation[1], lng: randomLocation[0] }, preference: 'nearest', radius: 100000, source: 'outdoor' },
+        (data, status) => processSVData(data, status, features, attempt, randomFeatureIndex)
+      );
+    }
+  }, []);
+
+  const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
+    if (status === 'OK') {
+      streetViewPanorama.current.setPano(data.location.pano);
+      streetViewPanorama.current.setVisible(true);
+      setIsLoaded(true);
+    } else if (attempt < 3) {
+      showRandomStreetView(features, attempt + 1);
+    } else {
+      const newFeatures = features.filter((_, index) => index !== randomFeatureIndex);
+      showRandomStreetView(newFeatures, 0);
+    }
+  }, [showRandomStreetView]);
+
+  const increaseMapSize = () => {
+    setIsDecreaseDisabled(false);
+
+    setMapSize(currentSize => ({
+      width: `${parseInt(currentSize.width) * 1.5}px`, // Increase width by 10%
+      height: `${parseInt(currentSize.height) * 1.5}px`, // Increase height by 10%
+    }));
+  };
+
+  const decreaseMapSize = () => {
+    setMapSize(currentSize => {
+      const newWidth = parseInt(currentSize.width) / 1.5;
+      const newHeight = parseInt(currentSize.height) / 1.5;
+
+      // Check if the new size is below the minimum
+      if (newWidth <= 300 || newHeight <= 200) {
+        setIsDecreaseDisabled(true); // Disable the decrease button
+        // Optionally, you can adjust this to set the size exactly to the minimum if below
+        return {
+          width: Math.max(newWidth, 300),
+          height: Math.max(newHeight, 200),
+        };
       }
+
+      // Enable the decrease button if it was previously disabled
+      setIsDecreaseDisabled(false);
+      return {
+        width: newWidth,
+        height: newHeight,
+      };
     });
   };
 
+
+  const onMouseEnter = () => {
+    if (isPinned) {
+      return;
+    }
+    // Clear any existing timeout to prevent unwanted size reset if we hover again before the timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  };
+
+  const onMouseLeave = () => {
+    if (isPinned) {
+      return;
+    }    // Set a timeout to reset the hover state after a delay
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+      hoverTimeoutRef.current = null;
+    }, 1000); // Delay in milliseconds (e.g., 2000ms = 2 seconds)
+  };
+
+
+  //function to change zoom of the map by clicking on a button
+  const ZoomIn = () => {
+    mapRef.current.setZoom(mapRef.current.zoom + 1);
+
+  }
+  const ZoomOut = () => {
+    mapRef.current.setZoom(mapRef.current.zoom - 1);
+
+  }
+
+  const pinMap = () => {
+    setIsPinned(!isPinned);
+    // if is pinned rotate the image to the right
+    if (isPinned) {
+      document.getElementById('pinButton').style.transform = 'rotate(90deg)';
+    }
+    // if is not pinned rotate the image to the left
+    else {
+      document.getElementById('pinButton').style.transform = 'rotate(0deg)';
+    }
+  }
+
   return (
-    <div>
-      <div ref={mapElementRef} style={{ height: '400px', width: '100%' }}></div>
-      <div ref={streetViewElementRef} style={{ height: '400px', width: '100%' }}></div>
-    </div>
+    <>
+      {!isLoading ? (
+        <div>Loading...</div> // Simple loading state, customize as needed
+      ) : (
+        <div class="flex h-screen">
+          <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
+            <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
+                <div class="text-lg font-bold">World</div>
+              </div>
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
+                <div class="text-lg font-bold">4 / 5</div>
+              </div>
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
+                <div class="text-lg font-bold">61</div>
+              </div>
+            </div>
+
+            <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
+              Timer
+            </span>
+            <Image
+              className="h-10 w-auto mr-4"
+              src={logo}
+              alt="logo"
+            />
+          </div>
+          {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
+          <div className="absolute bottom-5 left-5 z-10"
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+          >
+            <div class="relative bg-black p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+              style={{
+                opacity: isHovered ? 1 : 0,
+                transition: 'all 0.3s ease',
+              }}>
+
+              <button onClick={increaseMapSize}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  transform: 'rotate(225deg)',
+                }}
+                className="bg-white rounded-full z-30">
+                <Image src={arrow}
+                  alt="arrow"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              <button onClick={decreaseMapSize}
+                disabled={isDecreaseDisabled}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
+                  transition: 'all 0.3s ease',
+                  transform: 'rotate(45deg)',
+                }}
+                className="rounded-full z-30">
+                <Image src={arrow}
+                  alt="arrow"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              <button id="pinButton"
+                onClick={pinMap}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  weight: '20px',
+                  height: '20px',
+
+                }}
+                className="bg-white rounded-full z-30">
+                <Image src={stick}
+                  alt="stick"
+                  width={20}
+                  height={20}
+                  color='transparent'
+                />
+              </button>
+            </div>
+
+            <div class="relative z-20">
+              <button onClick={ZoomIn}
+                style={{
+                  transition: 'all 0.3s ease',
+                  right: '10px',
+                  top: '10px',
+                  weight: '20px',
+                  height: '20px',
+                }}
+                className="absolute bg-white rounded-full shadow-md">
+                <Image src={plus}
+                  alt="plus"
+                  width={18}
+                  height={18}
+                />
+              </button>
+              <button onClick={ZoomOut}
+                style={{
+                  transition: 'all 0.3s ease',
+                  right: '10px',
+                  top: '30px',
+                  weight: '20px',
+                  height: '20px',
+                }}
+                className="absolute rounded-full bg-white shadow-md">
+                <Image src={minus}
+                  alt="minus"
+                  width={18}
+                  height={18}
+
+                />
+              </button>
+            </div>
+
+            <div
+              style={{
+                width: isHovered ? mapSize.width : '250px',
+                height: isHovered ? mapSize.height : '150px',
+                transition: 'all 0.3s ease',
+                minHeight: '150px',
+                minWidth: '250px',
+              }}
+              className="relative map-container"
+            >
+              {/* Map will be rendered here */}
+            </div>
+            <button id="guessButton"
+              style={{
+                width: isHovered ? mapSize.width : '250px',
+                transition: 'all 0.3s ease',
+              }}
+              className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75">
+              Guess
+            </button>
+          </div>
+
+        </div>
+      )}
+    </>
   );
 };
 
 export default GameComponent;
-
-<div class="flex h-screen">
-      <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
-        <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-          <div class="">
-            <div class="text-xs uppercase text-stone-800">Carte</div>
-            <div class="text-lg font-bold">World</div>
-          </div>
-          <div class="text-white">
-            <div class="text-xs uppercase text-stone-800">Round</div>
-            <div class="text-lg font-bold">4 / 5</div>
-          </div>
-          <div class="text-white">
-            <div class="text-xs uppercase text-stone-800">Score</div>
-            <div class="text-lg font-bold">61</div>
-          </div>
-        </div>
-
-        <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
-          Timer
-        </span>
-        <Image
-          className="h-10 w-auto mr-4"
-          src={logo}
-          alt="logo"
-        />
-      </div>
-      {/*<div ref={streetViewElementRef} className="w-full h-full relative"></div>*/}
-      <div className="absolute w-1/5 bottom-2.5 left-2.5 z-10 "
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-      >
-
-        <button onClick={increaseMapSize}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'all 0.3s ease',
-          }}
-
-          className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          ++
-        </button>
-        <button onClick={decreaseMapSize}
-          disabled={isDecreaseDisabled}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            backgroundColor: isDecreaseDisabled ? 'gray' : 'red',
-            transition: 'all 0.3s ease',
-          }}
-          className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-          Decrease Map Size
-        </button>
-        <button onClick={ZoomIn}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'all 0.3s ease',
-          }}
-          className="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">
-          <Image src={plus}
-            alt="plus"
-            width={10}
-            height={10}
-          />
-        </button>
-        <button onClick={ZoomOut}
-          className="absolute mt-5 rounded-full bg-red-500 z-20">
-          <Image src={minus}
-            alt="minus"
-            width={20}
-            height={20}
-          />
-        </button>
-
-        <div
-          ref={mapElementRef}
-          style={{
-            width: isHovered ? mapSize.width : '250px',
-            height: isHovered ? mapSize.height : '150px',
-            transition: 'all 0.3s ease',
-          }}
-          className="relative map-container"
-        >
-          {/* Map will be rendered here */}
-        </div>
-        <button id="guessButton"
-          style={{
-            width: isHovered ? mapSize.width : '250px',
-            transition: 'all 0.3s ease',
-          }}
-          className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:-translate-y-1 hover:scale-102 hover:bg-yellow-950 duration-75">
-          Guess
-        </button>
-      </div>
-
-    </div>

@@ -51,6 +51,7 @@ const GameComponent = () => {
   const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
   const mapRef = useRef(null);
   const [isPinned, setIsPinned] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
     const initMap = async () => {
@@ -117,8 +118,10 @@ const GameComponent = () => {
     const randomFeatureIndex = Math.floor(Math.random() * features.length);
     const randomFeature = features[randomFeatureIndex];
     const randomLocation = generateRandomPointInFeature(randomFeature);
+    console.log('Random location:', randomLocation);
 
     if (streetViewServiceRef.current) {
+      console.log('Fetching Street View data...');
       streetViewServiceRef.current.getPanorama(
         { location: { lat: randomLocation[1], lng: randomLocation[0] }, preference: 'nearest', radius: 100000, source: 'outdoor' },
         (data, status) => processSVData(data, status, features, attempt, randomFeatureIndex)
@@ -130,6 +133,7 @@ const GameComponent = () => {
     if (status === 'OK') {
       streetViewPanorama.current.setPano(data.location.pano);
       streetViewPanorama.current.setVisible(true);
+      console.log('Street View data:', data);
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
     } else {
@@ -173,7 +177,7 @@ const GameComponent = () => {
 
 
   const onMouseEnter = () => {
-    if (isPinned){
+    if (isPinned) {
       return;
     }
     // Clear any existing timeout to prevent unwanted size reset if we hover again before the timeout
@@ -181,11 +185,12 @@ const GameComponent = () => {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
+
     setIsHovered(true);
   };
 
   const onMouseLeave = () => {
-    if (isPinned){
+    if (isPinned) {
       return;
     }    // Set a timeout to reset the hover state after a delay
     hoverTimeoutRef.current = setTimeout(() => {
@@ -208,156 +213,198 @@ const GameComponent = () => {
   const pinMap = () => {
     setIsPinned(!isPinned);
     // if is pinned rotate the image to the right
-    if (isPinned){
+    if (isPinned) {
       document.getElementById('pinButton').style.transform = 'rotate(90deg)';
     }
     // if is not pinned rotate the image to the left
-    else{
+    else {
       document.getElementById('pinButton').style.transform = 'rotate(0deg)';
     }
   }
 
+  const handleGuess = () => {
+    //showRandomStreetView(globalGeoJsonData.features);
+    setShowResult(!showResult);
+  }
+
+  const nextRound = () => {
+    setShowResult(false);
+    console.log('Next round');
+    setTimeout(() => {
+      initializeStreetViewAndMap()
+      //showRandomStreetView(globalGeoJsonData.features);
+
+    }, 1000);
+  }
+
+
+  function initializeStreetViewAndMap() {
+    // Define the location for the center of the map
+    const center = { lat: -34.397, lng: 150.644 }; // Example coordinates
+  
+    // Map initialization options
+    const mapOptions = {
+      zoom: 8,
+      center: center,
+    };
+  
+    // Assuming `mapElementRef` is a reference to the HTML element where the map will be rendered
+    const map = new google.maps.Map(mapElementRef.current, mapOptions);
+    mapRef.current = map; // Store the map object in useRef
+  
+  }
+
+
   return (
     <div class="flex h-screen">
-      <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
-        <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-          <div class="text-white">
-            <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
-            <div class="text-lg font-bold">World</div>
-          </div>
-          <div class="text-white">
-            <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
-            <div class="text-lg font-bold">4 / 5</div>
-          </div>
-          <div class="text-white">
-            <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
-            <div class="text-lg font-bold">61</div>
-          </div>
-        </div>
+      {!showResult && (
+        // Wrap the parts of the interface you want to hide when showing results
+        <>
+          <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
+            <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
+                <div class="text-lg font-bold">World</div>
+              </div>
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
+                <div class="text-lg font-bold">4 / 5</div>
+              </div>
+              <div class="text-white">
+                <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
+                <div class="text-lg font-bold">61</div>
+              </div>
+            </div>
 
-        <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
-          Timer
-        </span>
-        <Image
-          className="h-10 w-auto mr-4"
-          src={logo}
-          alt="logo"
-        />
-      </div>
-      {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
-      <div className="absolute bottom-5 left-5 z-10"
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-      >
-        <div class="relative bg-black p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'all 0.3s ease',
-          }}>
-
-        <button onClick={increaseMapSize}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'all 0.3s ease',
-            transform: 'rotate(225deg)',
-          }}
-          className="bg-white rounded-full z-30">
-            <Image src={arrow}
-            alt="arrow"
-            width={20}
-            height={20}
-          />
-        </button>
-        <button onClick={decreaseMapSize}
-          disabled={isDecreaseDisabled}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
-            transition: 'all 0.3s ease',
-            transform: 'rotate(45deg)',
-          }}
-          className="rounded-full z-30">
-          <Image src={arrow}
-            alt="arrow"
-            width={20}
-            height={20}
-          />
-        </button>
-        <button id = "pinButton"
-        onClick={pinMap}
-          style={{
-            opacity: isHovered ? 1 : 0,
-            transition: 'all 0.3s ease',
-            weight: '20px',
-            height: '20px',
-            
-          }}
-          className="bg-white rounded-full z-30">
-          <Image src={stick}
-            alt="stick"
-            width={20}
-            height={20}
-            color='transparent'
-          />
-        </button>
-        </div>
-
-        <div class="relative z-20">
-          <button onClick={ZoomIn}
-            style={{
-              transition: 'all 0.3s ease',
-              right: '10px',
-              top: '10px',
-              weight: '20px',
-              height: '20px',
-            }}
-            className="absolute bg-white rounded-full shadow-md">
-            <Image src={plus}
-              alt="plus"
-              width={18}
-              height={18}
+            <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
+              Timer
+            </span>
+            <Image
+              className="h-10 w-auto mr-4"
+              src={logo}
+              alt="logo"
             />
-          </button>
-          <button onClick={ZoomOut}
-          style={{
-            transition: 'all 0.3s ease',
-            right: '10px',
-            top: '30px',
-            weight: '20px',
-            height: '20px',
-          }}
-            className="absolute rounded-full bg-white shadow-md">
-            <Image src={minus}
-              alt="minus"
-              width={18}
-              height={18}
+          </div>
+          {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
+          <div className="absolute bottom-5 left-5 z-10"
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+          >
+            <div id="mapButtons"
+              class="relative p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+              style={{
+                backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+                transition: 'all 0.3s ease',
+              }}>
 
-            />
-          </button>
-        </div>
+              <button onClick={increaseMapSize}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  transform: 'rotate(225deg)',
+                }}
+                className="bg-white rounded-full z-30">
+                <Image src={arrow}
+                  alt="arrow"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              <button onClick={decreaseMapSize}
+                disabled={isDecreaseDisabled}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
+                  transition: 'all 0.3s ease',
+                  transform: 'rotate(45deg)',
+                }}
+                className="rounded-full z-30">
+                <Image src={arrow}
+                  alt="arrow"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              <button id="pinButton"
+                onClick={pinMap}
+                style={{
+                  opacity: isHovered ? 1 : 0,
+                  transition: 'all 0.3s ease',
+                  weight: '20px',
+                  height: '20px',
 
-        <div
-          ref={mapElementRef}
-          style={{
-            width: isHovered ? mapSize.width : '250px',
-            height: isHovered ? mapSize.height : '150px',
-            transition: 'all 0.3s ease',
-            minHeight: '150px',
-            minWidth: '250px',
-          }}
-          className="relative map-container"
-        >
-          {/* Map will be rendered here */}
-        </div>
-        <button id="guessButton"
-          style={{
-            width: isHovered ? mapSize.width : '250px',
-            transition: 'all 0.3s ease',
-          }}
-          className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75">
-          Guess
-        </button>
-      </div>
+                }}
+                className="bg-white rounded-full z-30">
+                <Image src={stick}
+                  alt="stick"
+                  width={20}
+                  height={20}
+                  color='transparent'
+                />
+              </button>
+            </div>
+
+            <div class="relative z-20">
+              <button onClick={ZoomIn}
+                style={{
+                  transition: 'all 0.3s ease',
+                  right: '10px',
+                  top: '10px',
+                  weight: '20px',
+                  height: '20px',
+                }}
+                className="absolute bg-white rounded-full shadow-md">
+                <Image src={plus}
+                  alt="plus"
+                  width={18}
+                  height={18}
+                />
+              </button>
+              <button onClick={ZoomOut}
+                style={{
+                  transition: 'all 0.3s ease',
+                  right: '10px',
+                  top: '30px',
+                  weight: '20px',
+                  height: '20px',
+                }}
+                className="absolute rounded-full bg-white shadow-md">
+                <Image src={minus}
+                  alt="minus"
+                  width={18}
+                  height={18}
+
+                />
+              </button>
+            </div>
+
+            <div
+              ref={mapElementRef}
+              style={{
+                width: isHovered ? mapSize.width : '250px',
+                height: isHovered ? mapSize.height : '150px',
+                transition: 'all 0.3s ease',
+                minHeight: '150px',
+                minWidth: '250px',
+              }}
+              className="relative map-container"
+            >
+              {/* Map will be rendered here */}
+            </div>
+            <button id="guessButton"
+              onClick={handleGuess}
+              style={{
+                width: isHovered ? mapSize.width : '250px',
+                transition: 'all 0.3s ease',
+              }}
+              className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
+              Guess
+            </button>
+          </div>
+        </>
+      )}
+      {showResult && <p>Extra content to show when the state is true.</p>}
+      {showResult && <button onClick={nextRound}>Guess</button>}
 
     </div>
   );

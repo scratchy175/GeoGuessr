@@ -1,4 +1,5 @@
 import RootLayout from "@/app/layout";
+//import GameComponent from "@/components/test";
 import GameComponent from "@/components/GameComponent";
 
 
