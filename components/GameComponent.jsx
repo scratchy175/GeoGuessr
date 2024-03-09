@@ -53,6 +53,8 @@ const GameComponent = () => {
   const [isPinned, setIsPinned] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
+  // move here fetch data
+
   useEffect(() => {
     const initMap = async () => {
       try {
@@ -62,34 +64,10 @@ const GameComponent = () => {
         });
         await loader.load();
         const { google } = window;
-        const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
-        mapRef.current = map; // Store the map object in useRef
-
-
-        loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
-          map.addListener('click', (e) => {
-            if (window.marker) {
-              window.marker.setMap(null);
-            }
-
-            // Creating an instance of AdvancedMarkerElement
-            window.marker = new AdvancedMarkerElement({
-              position: e.latLng,
-              map: map,
-              title: "Your Title Here", // Optional
-              // Additional properties based on AdvancedMarkerElementOptions
-            });
-            window.marker.content.innerHTML = imgElement
-
-
-            // Optional: Listen to events on the AdvancedMarkerElement
-            window.marker.addListener('click', () => {
-              console.log('AdvancedMarker clicked');
-              // Handle click event
-            });
-          });
-        });
-
+        console.log('Google Maps API loaded:');
+        initializeStreetViewAndMap()
+        initializeMarker()
+        
 
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
           pov: { heading: 0, pitch: 0 },
@@ -108,7 +86,7 @@ const GameComponent = () => {
     };
 
     initMap();
-  }, []);
+  }, [showResult]);
 
   const showRandomStreetView = useCallback((features, attempt = 0) => {
     if (!features.length) {
@@ -230,28 +208,47 @@ const GameComponent = () => {
   const nextRound = () => {
     setShowResult(false);
     console.log('Next round');
-    setTimeout(() => {
+    window.onload = function() {
       initializeStreetViewAndMap()
+      initializeMarker()
+  };
+      
       //showRandomStreetView(globalGeoJsonData.features);
 
-    }, 1000);
   }
 
 
-  function initializeStreetViewAndMap() {
-    // Define the location for the center of the map
-    const center = { lat: -34.397, lng: 150.644 }; // Example coordinates
-  
-    // Map initialization options
-    const mapOptions = {
-      zoom: 8,
-      center: center,
-    };
-  
+  const initializeStreetViewAndMap = () => {
+
     // Assuming `mapElementRef` is a reference to the HTML element where the map will be rendered
-    const map = new google.maps.Map(mapElementRef.current, mapOptions);
+    const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
     mapRef.current = map; // Store the map object in useRef
-  
+  }
+
+  const initializeMarker = () => {
+    loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      mapRef.current.addListener('click', (e) => {
+        if (window.marker) {
+          window.marker.setMap(null);
+        }
+
+        // Creating an instance of AdvancedMarkerElement
+        window.marker = new AdvancedMarkerElement({
+          position: e.latLng,
+          map: mapRef.current,
+          title: "Your Title Here", // Optional
+          // Additional properties based on AdvancedMarkerElementOptions
+        });
+        window.marker.content.innerHTML = imgElement
+
+
+        // Optional: Listen to events on the AdvancedMarkerElement
+        window.marker.addListener('click', () => {
+          console.log('AdvancedMarker clicked');
+          // Handle click event
+        });
+      });
+    });
   }
 
 
@@ -403,7 +400,7 @@ const GameComponent = () => {
           </div>
         </>
       )}
-      {showResult && <p>Extra content to show when the state is true.</p>}
+      {showResult && <p>Extra content to show when the state is true l&apos;exemple.</p>}
       {showResult && <button onClick={nextRound}>Guess</button>}
 
     </div>
