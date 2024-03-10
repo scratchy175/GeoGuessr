@@ -86,7 +86,7 @@ const GameComponent = () => {
     };
 
     initMap();
-  }, [showResult]);
+  }, []);
 
   const showRandomStreetView = useCallback((features, attempt = 0) => {
     if (!features.length) {
@@ -205,13 +205,19 @@ const GameComponent = () => {
     setShowResult(!showResult);
   }
 
+
   const nextRound = () => {
     setShowResult(false);
     console.log('Next round');
+    mapRef.current.setZoom(mapRef.current.zoom);
+
+
     window.onload = function() {
-      initializeStreetViewAndMap()
-      initializeMarker()
-  };
+      //initializeStreetViewAndMap()
+      //initializeMarker()
+      //map.setZoom(map.getZoom());
+    }
+    
       
       //showRandomStreetView(globalGeoJsonData.features);
 
@@ -254,7 +260,7 @@ const GameComponent = () => {
 
   return (
     <div class="flex h-screen">
-      {!showResult && (
+      {!isPinned && (
         // Wrap the parts of the interface you want to hide when showing results
         <>
           <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
@@ -384,7 +390,7 @@ const GameComponent = () => {
                 minHeight: '150px',
                 minWidth: '250px',
               }}
-              className="relative map-container"
+              className={`relative map-container ${showResult ? 'hidden' : ''}`}
             >
               {/* Map will be rendered here */}
             </div>
