@@ -55,6 +55,7 @@ const GameComponent = () => {
   const resultMapRef = useRef(null);
   const round = useRef(1);
   const totalScore = useRef(0);
+  const score = useRef(0);
 
 
 
@@ -225,28 +226,74 @@ const GameComponent = () => {
     const options = { units: 'kilometers' };
     const distance2 = distance(from, to, options);
     console.log(distance2);
-    totalScore.current += 5000 - distance2 * 2000;
+    score.current += 5000 - distance2 * 2000;
+    totalScore.current += score.current;
+    
+    const lineSymbol = {
+      path: "M 0,-1 0,1",
+      strokeOpacity: 1,
+      scale: 4,
+    };
 
     const line = new google.maps.Polyline({
       path: [user_position, map_position],
       geodesic: false,
-      strokeColor: '#FF0000',
-      strokeOpacity: 1.0,
-      strokeWeight: 2,
+      strokeColor: '#000000',
+      strokeOpacity: 0,
+      icons: [
+        {
+          icon: lineSymbol,
+          offset: "0",
+          repeat: "20px",
+        },
+      ],
+      strokeWeight: 1,
+      map: mapRef.current,
     });
-    line.setMap(mapRef.current);
+
+    //put a marker on the map_position
+    loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      const markerDiv = document.createElement('img');
+      markerDiv.src = '/Marker.svg';
+      markerDiv.style.className = 'custom-marker';
+      markerDiv.style.width = '30px';
+      markerDiv.style.height = '30px';
+      markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+
+      // Creating an instance of AdvancedMarkerElement
+      const marker = new AdvancedMarkerElement({
+        position: map_position,
+        map: mapRef.current,
+        title: "Your Title Here", // Optional
+        content: markerDiv, // Optional
+      });
+    });
+    setTimeout(() => {
+    const bounds = new google.maps.LatLngBounds();
+      bounds.extend(user_position);
+      //bounds.extend(map_position);
+      console.log(bounds);
+      console.log(mapRef.current.getBounds());
+      mapRef.current.fitBounds(bounds,100);
+      console.log(mapRef.current.getBounds());
+    }, 5000);
+
+      /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
+        // Adjust the zoom level after the map has fit the bounds
+        var currentZoom = mapRef.current.getZoom();
+        mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
+      });*/
+    
+
 
     
-    var bounds = new google.maps.LatLngBounds();
-    console.log(bounds);
-        bounds.extend(map_position);
-    bounds.extend(user_position);
-    mapRef.current.fitBounds(bounds);
+    
 
 
     setShowResult(!showResult);
     setTimeout(() => {
       moveToContainer('resultMap')
+      
 
     }, 100);
   }
@@ -336,7 +383,7 @@ const GameComponent = () => {
             </div>
             <div class="text-white">
               <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
-              <div class="text-lg font-bold">61</div>
+              <div class="text-lg font-bold">{totalScore.current}</div>
             </div>
           </div>
 
@@ -496,7 +543,7 @@ const GameComponent = () => {
                 Next Round
               </button>
               <div class="text-white">
-              <div class=" uppercase font-bold">0</div>
+              <div class=" uppercase font-bold">{score.current}</div>
               <div class="text-lg font-bold text-xs">sur 5 000 points</div>
             </div>
             </div>
