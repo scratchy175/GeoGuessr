@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import bbox from '@turf/bbox';
 import { randomPosition } from '@turf/random';
+import distance from '@turf/distance';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
 import logo from "@/public/logo.png";
@@ -48,10 +49,16 @@ const GameComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
-  const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
   const mapRef = useRef(null);
   const [isPinned, setIsPinned] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const resultMapRef = useRef(null);
+  const round = useRef(1);
+  const totalScore = useRef(0);
+
+
+
+
 
   // move here fetch data
 
@@ -65,9 +72,10 @@ const GameComponent = () => {
         await loader.load();
         const { google } = window;
         console.log('Google Maps API loaded:');
-        initializeStreetViewAndMap()
+        const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
+        mapRef.current = map; // Store the map object in useRef
         initializeMarker()
-        
+
 
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
           pov: { heading: 0, pitch: 0 },
@@ -201,34 +209,60 @@ const GameComponent = () => {
   }
 
   const handleGuess = () => {
-    //showRandomStreetView(globalGeoJsonData.features);
+    const user_position = { 
+      lat: window.marker.position.lat, 
+      lng: window.marker.position.lng 
+    };
+    const map_position = { 
+      lat: streetViewPanorama.current.location.latLng.lat(), 
+      lng: streetViewPanorama.current.location.latLng.lng() 
+    };
+    const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
+    console.log(distanceG/1000);
+
+    const from = [user_position.lng, user_position.lat];
+    const to = [map_position.lng, map_position.lat];
+    const options = { units: 'kilometers' };
+    const distance2 = distance(from, to, options);
+    console.log(distance2);
+    totalScore.current += 5000 - distance2 * 2000;
+
+    const line = new google.maps.Polyline({
+      path: [user_position, map_position],
+      geodesic: false,
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 2,
+    });
+    line.setMap(mapRef.current);
+
+    
+    var bounds = new google.maps.LatLngBounds();
+    console.log(bounds);
+        bounds.extend(map_position);
+    bounds.extend(user_position);
+    mapRef.current.fitBounds(bounds);
+
+
     setShowResult(!showResult);
+    setTimeout(() => {
+      moveToContainer('resultMap')
+
+    }, 100);
   }
 
 
   const nextRound = () => {
     setShowResult(false);
     console.log('Next round');
-    mapRef.current.setZoom(mapRef.current.zoom);
+    console.log(window.marker);
+    mapRef.current.setZoom(2);
+    mapRef.current.setCenter({ lat: 0, lng: 0 });
+    round.current++;
+    setTimeout(() => {
+      moveToContainer('map-container')
 
-
-    window.onload = function() {
-      //initializeStreetViewAndMap()
-      //initializeMarker()
-      //map.setZoom(map.getZoom());
-    }
-    
-      
-      //showRandomStreetView(globalGeoJsonData.features);
-
-  }
-
-
-  const initializeStreetViewAndMap = () => {
-
-    // Assuming `mapElementRef` is a reference to the HTML element where the map will be rendered
-    const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
-    mapRef.current = map; // Store the map object in useRef
+    }, 100);
   }
 
   const initializeMarker = () => {
@@ -238,177 +272,236 @@ const GameComponent = () => {
           window.marker.setMap(null);
         }
 
+        const markerDiv = document.createElement('img');
+        markerDiv.src = '/Marker.svg';
+        markerDiv.style.className = 'custom-marker';
+        markerDiv.style.width = '30px';
+        markerDiv.style.height = '30px';
+        markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+
+
+
+
         // Creating an instance of AdvancedMarkerElement
         window.marker = new AdvancedMarkerElement({
-          position: e.latLng,
+          position: {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng(),
+          },
           map: mapRef.current,
           title: "Your Title Here", // Optional
+          content: markerDiv, // Optional
+
           // Additional properties based on AdvancedMarkerElementOptions
         });
-        window.marker.content.innerHTML = imgElement
+        // add my photo Marker to the map
+        //window.marker.content.innerHTML = imgElement
 
 
         // Optional: Listen to events on the AdvancedMarkerElement
-        window.marker.addListener('click', () => {
+        /*window.marker.addListener('click', () => {
           console.log('AdvancedMarker clicked');
           // Handle click event
-        });
+        });*/
       });
     });
   }
 
+  const moveToContainer = (targetContainerId) => {
+    const mapDiv = mapElementRef.current; // The current map <div>
+    const targetContainer = document.getElementById(targetContainerId); // The target container
+    if (mapDiv && targetContainer) {
+      // Move the map's <div> to the target container
+      google.maps.event.trigger(mapRef.current, 'resize'); // Important: Trigger a resize event on the map
+      targetContainer.appendChild(mapDiv.childNodes[0]);
+      mapElementRef.current = targetContainer
+
+    }
+  };
+
+
 
   return (
-    <div class="flex h-screen">
-      {!isPinned && (
-        // Wrap the parts of the interface you want to hide when showing results
-        <>
-          <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
-            <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
-                <div class="text-lg font-bold">World</div>
-              </div>
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
-                <div class="text-lg font-bold">4 / 5</div>
-              </div>
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
-                <div class="text-lg font-bold">61</div>
-              </div>
+    <div class="flex flex-auto relative h-screen">
+      <>
+        <div class={`flex justify-between items-center p-1.5 absolute left-0 right-0 z-10 ${showResult ? 'hidden' : ''}`}>
+          <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
+              <div class="text-lg font-bold">World</div>
             </div>
-
-            <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
-              Timer
-            </span>
-            <Image
-              className="h-10 w-auto mr-4"
-              src={logo}
-              alt="logo"
-            />
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
+              <div class="text-lg font-bold">{round.current}/5</div>
+            </div>
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
+              <div class="text-lg font-bold">61</div>
+            </div>
           </div>
-          {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
-          <div className="absolute bottom-5 left-5 z-10"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-          >
-            <div id="mapButtons"
-              class="relative p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+
+          <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
+            Timer
+          </span>
+          <Image
+            className="h-10 w-auto mr-4"
+            src={logo}
+            alt="logo"
+          />
+        </div>
+        {<div ref={streetViewElementRef}
+          className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
+        </div>}
+        <div className={`absolute bottom-5 left-5 z-10 ${showResult ? 'hidden' : ''}`}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}>
+          <div id="mapButtons"
+            class="relative p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+            style={{
+              backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+              transition: 'all 0.3s ease',
+            }}>
+
+            <button onClick={increaseMapSize}
               style={{
-                backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+                opacity: isHovered ? 1 : 0,
                 transition: 'all 0.3s ease',
-              }}>
-
-              <button onClick={increaseMapSize}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  transition: 'all 0.3s ease',
-                  transform: 'rotate(225deg)',
-                }}
-                className="bg-white rounded-full z-30">
-                <Image src={arrow}
-                  alt="arrow"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              <button onClick={decreaseMapSize}
-                disabled={isDecreaseDisabled}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
-                  transition: 'all 0.3s ease',
-                  transform: 'rotate(45deg)',
-                }}
-                className="rounded-full z-30">
-                <Image src={arrow}
-                  alt="arrow"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              <button id="pinButton"
-                onClick={pinMap}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  transition: 'all 0.3s ease',
-                  weight: '20px',
-                  height: '20px',
-
-                }}
-                className="bg-white rounded-full z-30">
-                <Image src={stick}
-                  alt="stick"
-                  width={20}
-                  height={20}
-                  color='transparent'
-                />
-              </button>
-            </div>
-
-            <div class="relative z-20">
-              <button onClick={ZoomIn}
-                style={{
-                  transition: 'all 0.3s ease',
-                  right: '10px',
-                  top: '10px',
-                  weight: '20px',
-                  height: '20px',
-                }}
-                className="absolute bg-white rounded-full shadow-md">
-                <Image src={plus}
-                  alt="plus"
-                  width={18}
-                  height={18}
-                />
-              </button>
-              <button onClick={ZoomOut}
-                style={{
-                  transition: 'all 0.3s ease',
-                  right: '10px',
-                  top: '30px',
-                  weight: '20px',
-                  height: '20px',
-                }}
-                className="absolute rounded-full bg-white shadow-md">
-                <Image src={minus}
-                  alt="minus"
-                  width={18}
-                  height={18}
-
-                />
-              </button>
-            </div>
-
-            <div
-              ref={mapElementRef}
-              style={{
-                width: isHovered ? mapSize.width : '250px',
-                height: isHovered ? mapSize.height : '150px',
-                transition: 'all 0.3s ease',
-                minHeight: '150px',
-                minWidth: '250px',
+                transform: 'rotate(225deg)',
               }}
-              className={`relative map-container ${showResult ? 'hidden' : ''}`}
+              className="bg-white rounded-full z-30">
+              <Image src={arrow}
+                alt="arrow"
+                width={20}
+                height={20}
+              />
+            </button>
+            <button onClick={decreaseMapSize}
+              disabled={isDecreaseDisabled}
+              style={{
+                opacity: isHovered ? 1 : 0,
+                backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
+                transition: 'all 0.3s ease',
+                transform: 'rotate(45deg)',
+              }}
+              className="rounded-full z-30">
+              <Image src={arrow}
+                alt="arrow"
+                width={20}
+                height={20}
+              />
+            </button>
+            <button id="pinButton"
+              onClick={pinMap}
+              style={{
+                opacity: isHovered ? 1 : 0,
+                transition: 'all 0.3s ease',
+                weight: '20px',
+                height: '20px',
+
+              }}
+              className="bg-white rounded-full z-30">
+              <Image src={stick}
+                alt="stick"
+                width={20}
+                height={20}
+                color='transparent'
+              />
+            </button>
+          </div>
+
+          <div class="relative z-20">
+            <button onClick={ZoomIn}
+              style={{
+                transition: 'all 0.3s ease',
+                right: '10px',
+                top: '10px',
+                weight: '20px',
+                height: '20px',
+              }}
+              className="absolute bg-white rounded-full shadow-md">
+              <Image src={plus}
+                alt="plus"
+                width={18}
+                height={18}
+              />
+            </button>
+            <button onClick={ZoomOut}
+              style={{
+                transition: 'all 0.3s ease',
+                right: '10px',
+                top: '30px',
+                weight: '20px',
+                height: '20px',
+              }}
+              className="absolute rounded-full bg-white shadow-md">
+              <Image src={minus}
+                alt="minus"
+                width={18}
+                height={18}
+
+              />
+            </button>
+          </div>
+
+          <div
+            id="map-container"
+            ref={mapElementRef}
+            style={{
+              width: isHovered ? mapSize.width : '250px',
+              height: isHovered ? mapSize.height : '150px',
+              transition: 'all 0.3s ease',
+              minHeight: '150px',
+              minWidth: '250px',
+            }}
+            className="relative"
+          >
+            {/* Map will be rendered here */}
+          </div>
+          <button id="guessButton"
+            onClick={handleGuess}
+            style={{
+              width: isHovered ? mapSize.width : '250px',
+              transition: 'all 0.3s ease',
+            }}
+            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
+            Guess
+          </button>
+        </div>
+      </>
+
+      {showResult &&
+
+        <div class="result-container w-full h-full">
+          <div class="top-part h-5/6">
+            <div class="flex justify-center items-center pt-5 absolute left-0 right-0 z-10">
+              <div class="bg-black py-2 px-4 rounded-lg bg-opacity-30 pointer-events-none">
+                <div class="text-white text-lg font-bold">Tour {round.current}/5</div>
+              </div>
+            </div>
+            <div
+              id='resultMap'
+              className="w-full h-full flex relative overflow-hidden"
             >
               {/* Map will be rendered here */}
             </div>
-            <button id="guessButton"
-              onClick={handleGuess}
-              style={{
-                width: isHovered ? mapSize.width : '250px',
-                transition: 'all 0.3s ease',
-              }}
-              className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
-              Guess
-            </button>
           </div>
-        </>
-      )}
-      {showResult && <p>Extra content to show when the state is true l&apos;exemple.</p>}
-      {showResult && <button onClick={nextRound}>Guess</button>}
-
+          <div class="bottom-part h-1/6">
+            <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
+            <div class="text-white">
+              <div class=" uppercase uppercase font-bold">0 km</div>
+              <div class="text-lg font-bold text-xs">Depuis la localisation</div>
+            </div>
+              <button onClick={nextRound}
+                className="bg-green-500 py-2 px-4 rounded-lg text-base">
+                Next Round
+              </button>
+              <div class="text-white">
+              <div class=" uppercase font-bold">0</div>
+              <div class="text-lg font-bold text-xs">sur 5 000 points</div>
+            </div>
+            </div>
+          </div>
+        </div>}
     </div>
   );
 };

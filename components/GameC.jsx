@@ -372,3 +372,33 @@ const GameComponent = () => {
 };
 
 export default GameComponent;
+
+
+
+{showResult && 
+      
+  <div class="absolute bottom-5 right-5 z-10">
+    <div
+      id='resultMap'
+      className="absolute w-screen h-5/6"
+    >
+      {/* Map will be rendered here */}
+    </div>
+    <button onClick={nextRound}
+      class="bg-yellow-600 py-2 px-4 rounded-lg text-base">
+      Next Round
+    </button>
+  </div>}
+
+
+<div class={`result-container ${!showResult ? 'hidden' : ''}`}>
+        <div
+          id='resultMap'
+          className="absolute w-screen h-5/6"
+        >
+          {/* Map will be rendered here */}
+        </div>
+        <div class="relative bg-black p-4 rounded-lg shadow-md w-96">
+        </div>
+        
+      </div>

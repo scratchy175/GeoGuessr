@@ -1,55 +1,79 @@
 "use client"
-import { useState, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
-const containerStyle = {
-  width: '400px',
-  height: '400px'
+import React, { useEffect, useRef, useState } from 'react';
+import { Loader } from '@googlemaps/js-api-loader';
+
+
+// Map Component
+const Map = ({ shouldReset }) => {
+  const mapRef = useRef(null); // To hold the DOM reference for the map container
+  const mapInstanceRef = useRef(null); // To hold the map instance
+
+  // Initialize the map once
+  useEffect(() => {
+    console.log(mapInstanceRef.current);
+    if (!mapInstanceRef.current) { // Check if Google Maps is available and if we haven't already created a map instance
+      const loader = new Loader({
+        apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Replace with your actual API key
+        version: "weekly",
+      });
+      loader.load().then((google) => {
+        const map = new google.maps.Map(mapRef.current, {
+          center: { lat: -34.397, lng: 150.644 },
+          zoom: 8,
+        });
+      mapInstanceRef.current = map;
+      console.log('Map initialized');
+      });
+    }
+  }, []);
+
+  // Reset the map state
+  useEffect(() => {
+    if (shouldReset && mapInstanceRef.current) {
+      // Logic to reset the map's state (e.g., re-center the map)
+      const map = mapInstanceRef.current;
+      map.setCenter({ lat: -34.397, lng: 150.644 });
+      map.setZoom(8);
+      console.log('Map state reset');
+    }
+  }, [shouldReset]);
+
+  return <div ref={mapRef} style={{ height: '400px', width: '100%' }} />;
 };
 
-const center = {
-  lat: -34.397,
-  lng: 150.644
-};
+// Parent Component
+const App = () => {
 
-const MapPage = () => {
-  const [showMap, setShowMap] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [resetMapFlag, setResetMapFlag] = useState(false);
 
-  const toggleMap = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setShowMap(!showMap);
-      setLoading(false);
-    }, 1000);
+  const nextRound = () => {
+    setShowResult(false);
+    setResetMapFlag(!resetMapFlag); // Toggle to trigger the map state reset
   };
 
   return (
     <div>
-      {loading && <div>Loading...</div>}
-      {!loading && !showMap && (
-        <button onClick={toggleMap}>Show Map</button>
-      )}
-      {!loading && showMap && (
+      {!showResult && (
         <>
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={10}
-          >
-            <Marker position={center} />
-          </GoogleMap>
-          <button onClick={toggleMap}>Hide Map</button>
+          <Map shouldReset={resetMapFlag} />
+          
+          <button onClick={() => setShowResult(true)} style={{ marginTop: '10px', padding: '10px', backgroundColor: 'blue', color: 'white' }}>
+            Show Results
+          </button>
         </>
+      )}
+
+      {showResult && (
+        <div style={{ position: 'absolute', bottom: '5px', right: '5px' }}>
+          <button onClick={nextRound} style={{ backgroundColor: 'yellow', padding: '10px' }}>
+            Next Round
+          </button>
+        </div>
       )}
     </div>
   );
 };
 
-const WrappedMapPage = () => (
-  <LoadScript googleMapsApiKey="AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI">
-    <MapPage />
-  </LoadScript>
-);
-
-export default WrappedMapPage;
+export default App;
