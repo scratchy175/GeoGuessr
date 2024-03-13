@@ -1,4 +1,5 @@
 "use client"
+// Importation des bibliothèques et des modules nécessaires.
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import bbox from '@turf/bbox';
@@ -6,12 +7,15 @@ import { randomPosition } from '@turf/random';
 import distance from '@turf/distance';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
+
+// Importation des images depuis le dossier public.
 import logo from "@/public/logo.png";
 import plus from "@/public/Plus_black.svg";
 import minus from "@/public/Minus_black.svg";
 import arrow from "@/public/Arrow.svg";
 import stick from "@/public/World_Game_Stick.svg";
 
+// Fonction asynchrone pour charger les données GeoJSON.
 const fetchGeoJsonData = async () => {
   try {
     const response = await fetch('/countries.geojson');
@@ -21,10 +25,11 @@ const fetchGeoJsonData = async () => {
     return await response.json();
   } catch (error) {
     console.error("Error loading the GeoJSON file:", error);
-    throw error; // Re-throw to be caught by calling function
+    throw error; // Re-lancer l'erreur pour qu'elle soit gérée par la fonction appelante.
   }
 };
 
+// Fonction pour générer un point aléatoire à l'intérieur d'une entité (feature) GeoJSON.
 const generateRandomPointInFeature = (feature) => {
   let randomPoint;
   const bboxObj = bbox(feature);
@@ -34,18 +39,21 @@ const generateRandomPointInFeature = (feature) => {
   return randomPoint;
 };
 
+// Fonction asynchrone pour charger une bibliothèque Google Maps avancée pour les marqueurs.
 async function loadAdvancedMarkerLibrary() {
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
   return AdvancedMarkerElement;
 }
 
+// Le composant principal du jeu.
 const GameComponent = () => {
+  // Utilisation des hooks pour gérer l'état et les références.
   const mapElementRef = useRef(null);
   const streetViewElementRef = useRef(null);
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
   const streetViewPanorama = useRef(null);
-  const [mapSize, setMapSize] = useState({ width: '250', height: '150' }); // Use string to concatenate easily
+  const [mapSize, setMapSize] = useState({ width: '250', height: '150' });
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
@@ -57,17 +65,12 @@ const GameComponent = () => {
   const totalScore = useRef(0);
   const score = useRef(0);
 
-
-
-
-
-  // move here fetch data
-
   useEffect(() => {
+    // Initialisation de la carte et chargement des données GeoJSON.
     const initMap = async () => {
       try {
         const loader = new Loader({
-          apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Replace with your actual API key
+          apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Remplacer par votre clé API réelle.
           version: "weekly",
         });
         await loader.load();
@@ -77,7 +80,7 @@ const GameComponent = () => {
         mapRef.current = map; // Store the map object in useRef
         initializeMarker()
 
-
+        // Initialisation du panorama Street View.
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
           pov: { heading: 0, pitch: 0 },
           disableDefaultUI: true,
@@ -85,7 +88,7 @@ const GameComponent = () => {
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
-
+        // Chargement des données GeoJSON.
         const data = await fetchGeoJsonData();
         setGlobalGeoJsonData(data);
         showRandomStreetView(data.features);
@@ -97,6 +100,8 @@ const GameComponent = () => {
     initMap();
   }, []);
 
+
+  // Fonction pour afficher une vue Street View aléatoire.
   const showRandomStreetView = useCallback((features, attempt = 0) => {
     if (!features.length) {
       console.error("No features available.");
@@ -116,6 +121,7 @@ const GameComponent = () => {
     }
   }, []);
 
+  // Fonction pour traiter les données Street View.
   const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
     if (status === 'OK') {
       streetViewPanorama.current.setPano(data.location.pano);
@@ -129,31 +135,31 @@ const GameComponent = () => {
     }
   }, [showRandomStreetView]);
 
+  // Fonction pour augmenter la taille de la carte.
   const increaseMapSize = () => {
     setIsDecreaseDisabled(false);
 
     setMapSize(currentSize => ({
-      width: `${parseInt(currentSize.width) * 1.5}px`, // Increase width by 10%
-      height: `${parseInt(currentSize.height) * 1.5}px`, // Increase height by 10%
+      width: `${parseInt(currentSize.width) * 1.5}px`, // augmenter la largeur de 10%
+      height: `${parseInt(currentSize.height) * 1.5}px`, // augmenter la hauteur de 10%
     }));
   };
-
+  // Fonction pour diminuer la taille de la carte.
   const decreaseMapSize = () => {
     setMapSize(currentSize => {
       const newWidth = parseInt(currentSize.width) / 1.5;
       const newHeight = parseInt(currentSize.height) / 1.5;
 
-      // Check if the new size is below the minimum
+      // Vérifier si la taille est inférieure à la taille minimale
       if (newWidth <= 300 || newHeight <= 200) {
-        setIsDecreaseDisabled(true); // Disable the decrease button
-        // Optionally, you can adjust this to set the size exactly to the minimum if below
+        setIsDecreaseDisabled(true); // Désactiver le bouton de diminution
         return {
           width: Math.max(newWidth, 300),
           height: Math.max(newHeight, 200),
         };
       }
 
-      // Enable the decrease button if it was previously disabled
+      // Activer le bouton de diminution
       setIsDecreaseDisabled(false);
       return {
         width: newWidth,
@@ -162,12 +168,11 @@ const GameComponent = () => {
     });
   };
 
-
+  // Fonction pour gérer le survol de la carte.
   const onMouseEnter = () => {
     if (isPinned) {
       return;
     }
-    // Clear any existing timeout to prevent unwanted size reset if we hover again before the timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
@@ -176,39 +181,41 @@ const GameComponent = () => {
     setIsHovered(true);
   };
 
+  // Fonction pour gérer la sortie du survol de la carte.
   const onMouseLeave = () => {
     if (isPinned) {
       return;
-    }    // Set a timeout to reset the hover state after a delay
+    }
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
       hoverTimeoutRef.current = null;
-    }, 1000); // Delay in milliseconds (e.g., 2000ms = 2 seconds)
+    }, 1000); // Attendre 1 seconde avant de masquer les boutons
   };
 
-
-  //function to change zoom of the map by clicking on a button
+  // Fonction pour zoomer sur la carte.
   const ZoomIn = () => {
     mapRef.current.setZoom(mapRef.current.zoom + 1);
 
   }
+  // Fonction pour dézoomer sur la carte.
   const ZoomOut = () => {
     mapRef.current.setZoom(mapRef.current.zoom - 1);
 
   }
-
+  // Fonction pour épingler la carte.
   const pinMap = () => {
     setIsPinned(!isPinned);
-    // if is pinned rotate the image to the right
+    // si la carte est épinglée, faire pivoter l'image vers la droite
     if (isPinned) {
       document.getElementById('pinButton').style.transform = 'rotate(90deg)';
     }
-    // if is not pinned rotate the image to the left
+    // sinon, faire pivoter l'image vers la gauche
     else {
       document.getElementById('pinButton').style.transform = 'rotate(0deg)';
     }
   }
 
+  // Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = () => {
     const user_position = { 
       lat: window.marker.position.lat, 
@@ -218,6 +225,7 @@ const GameComponent = () => {
       lat: streetViewPanorama.current.location.latLng.lat(), 
       lng: streetViewPanorama.current.location.latLng.lng() 
     };
+    // Calculer la distance entre les deux points
     const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
     console.log(distanceG/1000);
 
@@ -234,7 +242,7 @@ const GameComponent = () => {
       strokeOpacity: 1,
       scale: 4,
     };
-
+    // Dessiner une ligne entre les deux points
     const line = new google.maps.Polyline({
       path: [user_position, map_position],
       geodesic: false,
@@ -251,16 +259,17 @@ const GameComponent = () => {
       map: mapRef.current,
     });
 
-    //put a marker on the map_position
+    // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      // Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
       markerDiv.src = '/Marker.svg';
       markerDiv.style.className = 'custom-marker';
       markerDiv.style.width = '30px';
       markerDiv.style.height = '30px';
-      markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+      markerDiv.style.transform = 'translate(0, +40%)'; // Centrer le marqueur
 
-      // Creating an instance of AdvancedMarkerElement
+      // Créer une instance de AdvancedMarkerElement
       const marker = new AdvancedMarkerElement({
         position: map_position,
         map: mapRef.current,
@@ -271,34 +280,20 @@ const GameComponent = () => {
     setTimeout(() => {
     const bounds = new google.maps.LatLngBounds();
       bounds.extend(user_position);
-      //bounds.extend(map_position);
+      bounds.extend(map_position);
       console.log(bounds);
       console.log(mapRef.current.getBounds());
       mapRef.current.fitBounds(bounds,100);
       console.log(mapRef.current.getBounds());
     }, 5000);
-
-      /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
-        // Adjust the zoom level after the map has fit the bounds
-        var currentZoom = mapRef.current.getZoom();
-        mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
-      });*/
-    
-
-
-    
-    
-
-
     setShowResult(!showResult);
     setTimeout(() => {
       moveToContainer('resultMap')
-      
 
     }, 100);
   }
 
-
+  // Fonction pour passer au tour suivant.
   const nextRound = () => {
     setShowResult(false);
     console.log('Next round');
@@ -311,7 +306,7 @@ const GameComponent = () => {
 
     }, 100);
   }
-
+  // Fonction pour initialiser le marqueur avancé.
   const initializeMarker = () => {
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
       mapRef.current.addListener('click', (e) => {
@@ -324,50 +319,38 @@ const GameComponent = () => {
         markerDiv.style.className = 'custom-marker';
         markerDiv.style.width = '30px';
         markerDiv.style.height = '30px';
-        markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+        markerDiv.style.transform = 'translate(0, +40%)'; // Centrer le marqueur
 
 
 
 
-        // Creating an instance of AdvancedMarkerElement
         window.marker = new AdvancedMarkerElement({
           position: {
             lat: e.latLng.lat(),
             lng: e.latLng.lng(),
           },
           map: mapRef.current,
-          title: "Your Title Here", // Optional
-          content: markerDiv, // Optional
+          title: "Your Title Here",
+          content: markerDiv, 
 
-          // Additional properties based on AdvancedMarkerElementOptions
         });
-        // add my photo Marker to the map
-        //window.marker.content.innerHTML = imgElement
-
-
-        // Optional: Listen to events on the AdvancedMarkerElement
-        /*window.marker.addListener('click', () => {
-          console.log('AdvancedMarker clicked');
-          // Handle click event
-        });*/
       });
     });
   }
 
+  // Fonction pour déplacer le contenu de la carte vers un autre conteneur.
   const moveToContainer = (targetContainerId) => {
-    const mapDiv = mapElementRef.current; // The current map <div>
-    const targetContainer = document.getElementById(targetContainerId); // The target container
+    const mapDiv = mapElementRef.current; 
+    const targetContainer = document.getElementById(targetContainerId); 
     if (mapDiv && targetContainer) {
-      // Move the map's <div> to the target container
-      google.maps.event.trigger(mapRef.current, 'resize'); // Important: Trigger a resize event on the map
+      google.maps.event.trigger(mapRef.current, 'resize');
       targetContainer.appendChild(mapDiv.childNodes[0]);
       mapElementRef.current = targetContainer
 
     }
   };
 
-
-
+// Retourner le contenu du composant.
   return (
     <div class="flex flex-auto relative h-screen">
       <>
