@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import bbox from '@turf/bbox';
 import { randomPosition } from '@turf/random';
+import distance from '@turf/distance';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
 import logo from "@/public/logo.png";
@@ -38,6 +39,33 @@ async function loadAdvancedMarkerLibrary() {
   return AdvancedMarkerElement;
 }
 
+
+function generateRandomMarkers(map) {
+  // Clear previous markers
+  if (window.markers) {
+    window.markers.forEach(marker => marker.setMap(null));
+  }
+
+  // Generate two random locations
+  const locations = [
+    { lat: Math.random() * 180 - 90, lng: Math.random() * 360 - 180 },
+    { lat: Math.random() * 180 - 90, lng: Math.random() * 360 - 180 },
+  ];
+
+  // Create markers and adjust map bounds
+  const bounds = new window.google.maps.LatLngBounds();
+  window.markers = locations.map(location => {
+    const marker = new window.google.maps.Marker({
+      position: location,
+      map,
+    });
+    bounds.extend(marker.getPosition());
+    return marker;
+  });
+
+  map.fitBounds(bounds);
+}
+
 const GameComponent = () => {
   const mapElementRef = useRef(null);
   const streetViewElementRef = useRef(null);
@@ -48,13 +76,23 @@ const GameComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
-  const imgElement = '<img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_light_color_92x30dp.png" alt="Google Logo" style="width: 100px; height: 30px;" />';
   const mapRef = useRef(null);
   const [isPinned, setIsPinned] = useState(false);
-  const [isLoading, setIsLoaded] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const resultMapRef = useRef(null);
+  const round = useRef(1);
+  const totalScore = useRef(0);
+  const score = useRef(0);
+
+  const mapContainerRef = useRef(null);
+  const [currentParentId, setCurrentParentId] = useState('placeholder1');
+  const [map, setMap] = useState(null);
+
+
+
+  // move here fetch data
 
   useEffect(() => {
-    console.log(mapElementRef.current); 
     const initMap = async () => {
       try {
         const loader = new Loader({
@@ -63,33 +101,20 @@ const GameComponent = () => {
         });
         await loader.load();
         const { google } = window;
-        const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
-        mapRef.current = map; // Store the map object in useRef
-
-
-        loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
-          map.addListener('click', (e) => {
-            if (window.marker) {
-              window.marker.setMap(null);
-            }
-
-            // Creating an instance of AdvancedMarkerElement
-            window.marker = new AdvancedMarkerElement({
-              position: e.latLng,
-              map: map,
-              title: "Your Title Here", // Optional
-              // Additional properties based on AdvancedMarkerElementOptions
-            });
-            window.marker.content.innerHTML = imgElement
-
-
-            // Optional: Listen to events on the AdvancedMarkerElement
-            window.marker.addListener('click', () => {
-              console.log('AdvancedMarker clicked');
-              // Handle click event
-            });
-          });
+        console.log('Google Maps API loaded:');
+        const initializedMap = new google.maps.Map(mapContainerRef.current, {
+          center: { lat: 0, lng: 0 },
+          zoom: 2,
         });
+        setMap(initializedMap);
+
+
+
+
+
+
+
+        //initializeMarker()
 
 
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
@@ -111,6 +136,39 @@ const GameComponent = () => {
     initMap();
   }, []);
 
+
+  const moveMapAndResize = () => {
+    setShowResult(!showResult)
+    setTimeout(() => {
+      const newParentId = currentParentId === 'inGame' ? 'resultsMap' : 'inGame';
+      const newParent = document.getElementById(newParentId);
+      newParent.appendChild(mapContainerRef.current);
+
+      // Check the target parent to determine the size
+      if (newParentId === 'resultsMap') {
+        // Full screen
+        mapContainerRef.current.style.width = '100vw';
+        mapContainerRef.current.style.height = '100vh';
+        mapContainerRef.current.style.position = 'fixed';
+        mapContainerRef.current.style.top = '0';
+        mapContainerRef.current.style.left = '0';
+      } else {
+        // Small size
+        mapContainerRef.current.style.width = '400px';
+        mapContainerRef.current.style.height = '300px';
+        mapContainerRef.current.style.position = 'relative';
+      }
+
+      setCurrentParentId(newParentId);
+
+      if (map) {
+        // Trigger resize to adapt the map to its new container size
+        google.maps.event.trigger(map, 'resize');
+        generateRandomMarkers(map);
+      }
+    }, 1000);
+  };
+
   const showRandomStreetView = useCallback((features, attempt = 0) => {
     if (!features.length) {
       console.error("No features available.");
@@ -119,8 +177,10 @@ const GameComponent = () => {
     const randomFeatureIndex = Math.floor(Math.random() * features.length);
     const randomFeature = features[randomFeatureIndex];
     const randomLocation = generateRandomPointInFeature(randomFeature);
+    console.log('Random location:', randomLocation);
 
     if (streetViewServiceRef.current) {
+      console.log('Fetching Street View data...');
       streetViewServiceRef.current.getPanorama(
         { location: { lat: randomLocation[1], lng: randomLocation[0] }, preference: 'nearest', radius: 100000, source: 'outdoor' },
         (data, status) => processSVData(data, status, features, attempt, randomFeatureIndex)
@@ -132,7 +192,7 @@ const GameComponent = () => {
     if (status === 'OK') {
       streetViewPanorama.current.setPano(data.location.pano);
       streetViewPanorama.current.setVisible(true);
-      setIsLoaded(true);
+      console.log('Street View data:', data);
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
     } else {
@@ -184,6 +244,7 @@ const GameComponent = () => {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
+
     setIsHovered(true);
   };
 
@@ -220,185 +281,336 @@ const GameComponent = () => {
     }
   }
 
-  return (
-    <>
-      {!isLoading ? (
-        <div>Loading...</div> // Simple loading state, customize as needed
-      ) : (
-        <div class="flex h-screen">
-          <div class="flex justify-between items-center p-1.5 absolute left-0 right-0 z-10">
-            <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
-                <div class="text-lg font-bold">World</div>
-              </div>
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
-                <div class="text-lg font-bold">4 / 5</div>
-              </div>
-              <div class="text-white">
-                <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
-                <div class="text-lg font-bold">61</div>
-              </div>
-            </div>
+  const handleGuess = () => {
+    const user_position = {
+      lat: window.marker.position.lat,
+      lng: window.marker.position.lng
+    };
+    const map_position = {
+      lat: streetViewPanorama.current.location.latLng.lat(),
+      lng: streetViewPanorama.current.location.latLng.lng()
+    };
+    const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
+    console.log(distanceG / 1000);
 
-            <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
-              Timer
-            </span>
-            <Image
-              className="h-10 w-auto mr-4"
-              src={logo}
-              alt="logo"
-            />
+    const from = [user_position.lng, user_position.lat];
+    const to = [map_position.lng, map_position.lat];
+    const options = { units: 'kilometers' };
+    const distance2 = distance(from, to, options);
+    console.log(distance2);
+    score.current += 5000 - distance2 * 2000;
+    totalScore.current += score.current;
+
+    const lineSymbol = {
+      path: "M 0,-1 0,1",
+      strokeOpacity: 1,
+      scale: 4,
+    };
+
+    const line = new google.maps.Polyline({
+      path: [user_position, map_position],
+      geodesic: false,
+      strokeColor: '#000000',
+      strokeOpacity: 0,
+      icons: [
+        {
+          icon: lineSymbol,
+          offset: "0",
+          repeat: "20px",
+        },
+      ],
+      strokeWeight: 1,
+      map: mapRef.current,
+    });
+
+    //put a marker on the map_position
+    loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      const markerDiv = document.createElement('img');
+      markerDiv.src = '/Marker.svg';
+      markerDiv.style.className = 'custom-marker';
+      markerDiv.style.width = '30px';
+      markerDiv.style.height = '30px';
+      markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+
+      // Creating an instance of AdvancedMarkerElement
+      const marker = new AdvancedMarkerElement({
+        position: map_position,
+        map: mapRef.current,
+        title: "Your Title Here", // Optional
+        content: markerDiv, // Optional
+      });
+    });
+    setTimeout(() => {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(user_position);
+      //bounds.extend(map_position);
+      console.log(bounds);
+      console.log(mapRef.current.getBounds());
+      mapRef.current.fitBounds(bounds, 100);
+      console.log(mapRef.current.getBounds());
+    }, 5000);
+
+    /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
+      // Adjust the zoom level after the map has fit the bounds
+      var currentZoom = mapRef.current.getZoom();
+      mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
+    });*/
+
+
+
+
+
+
+
+    setShowResult(!showResult);
+    setTimeout(() => {
+      moveToContainer('resultMap')
+
+
+    }, 100);
+  }
+
+
+  const nextRound = () => {
+    setShowResult(false);
+    console.log('Next round');
+    console.log(window.marker);
+    mapRef.current.setZoom(2);
+    mapRef.current.setCenter({ lat: 0, lng: 0 });
+    round.current++;
+    setTimeout(() => {
+      moveToContainer('map-container')
+
+    }, 100);
+  }
+
+  const initializeMarker = () => {
+    loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      mapRef.current.addListener('click', (e) => {
+        if (window.marker) {
+          window.marker.setMap(null);
+        }
+
+        const markerDiv = document.createElement('img');
+        markerDiv.src = '/Marker.svg';
+        markerDiv.style.className = 'custom-marker';
+        markerDiv.style.width = '30px';
+        markerDiv.style.height = '30px';
+        markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+
+
+
+
+        // Creating an instance of AdvancedMarkerElement
+        window.marker = new AdvancedMarkerElement({
+          position: {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng(),
+          },
+          map: mapRef.current,
+          title: "Your Title Here", // Optional
+          content: markerDiv, // Optional
+
+          // Additional properties based on AdvancedMarkerElementOptions
+        });
+        // add my photo Marker to the map
+        //window.marker.content.innerHTML = imgElement
+
+
+        // Optional: Listen to events on the AdvancedMarkerElement
+        /*window.marker.addListener('click', () => {
+          console.log('AdvancedMarker clicked');
+          // Handle click event
+        });*/
+      });
+    });
+  }
+
+  const moveToContainer = (targetContainerId) => {
+    const mapDiv = mapElementRef.current; // The current map <div>
+    const targetContainer = document.getElementById(targetContainerId); // The target container
+    if (mapDiv && targetContainer) {
+      // Move the map's <div> to the target container
+      google.maps.event.trigger(mapRef.current, 'resize'); // Important: Trigger a resize event on the map
+      targetContainer.appendChild(mapDiv.childNodes[0]);
+      mapElementRef.current = targetContainer
+
+    }
+  };
+
+
+
+  return (
+    <div class="flex flex-auto relative h-screen">
+      <>
+        <div class={`flex justify-between items-center p-1.5 absolute left-0 right-0 z-10 ${showResult ? 'hidden' : ''}`}>
+          <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
+              <div class="text-lg font-bold">World</div>
+            </div>
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
+              <div class="text-lg font-bold">{round.current}/5</div>
+            </div>
+            <div class="text-white">
+              <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
+              <div class="text-lg font-bold">{totalScore.current}</div>
+            </div>
           </div>
-          {<div ref={streetViewElementRef} className="w-full h-full relative"></div>}
-          <div className="absolute bottom-5 left-5 z-10"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-          >
-            <div class="relative bg-black p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+
+          <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
+            Timer
+          </span>
+          <Image
+            className="h-10 w-auto mr-4"
+            src={logo}
+            alt="logo"
+          />
+        </div>
+        {<div ref={streetViewElementRef}
+          className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
+        </div>}
+        <div className={`absolute bottom-5 left-5 z-10 ${showResult ? 'hidden' : ''}`}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}>
+          <div id="mapButtons"
+            class="relative p-2 space-x-2 max-w-max max-h-10 rounded-t-lg"
+            style={{
+              backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
+              transition: 'all 0.3s ease',
+            }}>
+
+            <button onClick={increaseMapSize}
               style={{
                 opacity: isHovered ? 1 : 0,
                 transition: 'all 0.3s ease',
-              }}>
-
-              <button onClick={increaseMapSize}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  transition: 'all 0.3s ease',
-                  transform: 'rotate(225deg)',
-                }}
-                className="bg-white rounded-full z-30">
-                <Image src={arrow}
-                  alt="arrow"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              <button onClick={decreaseMapSize}
-                disabled={isDecreaseDisabled}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
-                  transition: 'all 0.3s ease',
-                  transform: 'rotate(45deg)',
-                }}
-                className="rounded-full z-30">
-                <Image src={arrow}
-                  alt="arrow"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              <button id="pinButton"
-                onClick={pinMap}
-                style={{
-                  opacity: isHovered ? 1 : 0,
-                  transition: 'all 0.3s ease',
-                  weight: '20px',
-                  height: '20px',
-
-                }}
-                className="bg-white rounded-full z-30">
-                <Image src={stick}
-                  alt="stick"
-                  width={20}
-                  height={20}
-                  color='transparent'
-                />
-              </button>
-            </div>
-
-            <div class="relative z-20">
-              <button onClick={ZoomIn}
-                style={{
-                  transition: 'all 0.3s ease',
-                  right: '10px',
-                  top: '10px',
-                  weight: '20px',
-                  height: '20px',
-                }}
-                className="absolute bg-white rounded-full shadow-md">
-                <Image src={plus}
-                  alt="plus"
-                  width={18}
-                  height={18}
-                />
-              </button>
-              <button onClick={ZoomOut}
-                style={{
-                  transition: 'all 0.3s ease',
-                  right: '10px',
-                  top: '30px',
-                  weight: '20px',
-                  height: '20px',
-                }}
-                className="absolute rounded-full bg-white shadow-md">
-                <Image src={minus}
-                  alt="minus"
-                  width={18}
-                  height={18}
-
-                />
-              </button>
-            </div>
-
-            <div
-              style={{
-                width: isHovered ? mapSize.width : '250px',
-                height: isHovered ? mapSize.height : '150px',
-                transition: 'all 0.3s ease',
-                minHeight: '150px',
-                minWidth: '250px',
+                transform: 'rotate(225deg)',
               }}
-              className="relative map-container"
-            >
-              {/* Map will be rendered here */}
-            </div>
-            <button id="guessButton"
+              className="bg-white rounded-full z-30">
+              <Image src={arrow}
+                alt="arrow"
+                width={20}
+                height={20}
+              />
+            </button>
+            <button onClick={decreaseMapSize}
+              disabled={isDecreaseDisabled}
               style={{
-                width: isHovered ? mapSize.width : '250px',
+                opacity: isHovered ? 1 : 0,
+                backgroundColor: isDecreaseDisabled ? 'gray' : 'white',
                 transition: 'all 0.3s ease',
+                transform: 'rotate(45deg)',
               }}
-              className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75">
-              Guess
+              className="rounded-full z-30">
+              <Image src={arrow}
+                alt="arrow"
+                width={20}
+                height={20}
+              />
+            </button>
+            <button id="pinButton"
+              onClick={pinMap}
+              style={{
+                opacity: isHovered ? 1 : 0,
+                transition: 'all 0.3s ease',
+                weight: '20px',
+                height: '20px',
+
+              }}
+              className="bg-white rounded-full z-30">
+              <Image src={stick}
+                alt="stick"
+                width={20}
+                height={20}
+                color='transparent'
+              />
             </button>
           </div>
 
+          <div class="relative z-20">
+            <button onClick={ZoomIn}
+              style={{
+                transition: 'all 0.3s ease',
+                right: '10px',
+                top: '10px',
+                weight: '20px',
+                height: '20px',
+              }}
+              className="absolute bg-white rounded-full shadow-md">
+              <Image src={plus}
+                alt="plus"
+                width={18}
+                height={18}
+              />
+            </button>
+            <button onClick={ZoomOut}
+              style={{
+                transition: 'all 0.3s ease',
+                right: '10px',
+                top: '30px',
+                weight: '20px',
+                height: '20px',
+              }}
+              className="absolute rounded-full bg-white shadow-md">
+              <Image src={minus}
+                alt="minus"
+                width={18}
+                height={18}
+
+              />
+            </button>
+          </div>
+
+          <div id="inGame" style={{ height: '300px', margin: '20px' }}></div>
+          <button id="guessButton"
+            onClick={handleGuess}
+            style={{
+              width: isHovered ? mapSize.width : '250px',
+              transition: 'all 0.3s ease',
+            }}
+            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
+            Guess
+          </button>
+          <button onClick={moveMapAndResize}
+            className='relative z-50'
+
+          >Toggle Full Screen</button>
         </div>
-      )}
-    </>
+      </>
+
+      {showResult &&
+
+        <div class="result-container w-full h-full">
+          <div class="top-part h-5/6">
+            <div class="flex justify-center items-center pt-5 absolute left-0 right-0 z-10">
+              <div class="bg-black py-2 px-4 rounded-lg bg-opacity-30 pointer-events-none">
+                <div class="text-white text-lg font-bold">Tour {round.current}/5</div>
+              </div>
+            </div>
+            <div id="resultsMap"></div> {/* This div becomes the full-screen container */}
+          </div>
+          <div class="bottom-part h-1/6">
+            <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
+              <div class="text-white">
+                <div class=" uppercase uppercase font-bold">0 km</div>
+                <div class="text-lg font-bold text-xs">Depuis la localisation</div>
+              </div>
+              <button onClick={nextRound}
+                className="bg-green-500 py-2 px-4 rounded-lg text-base">
+                Next Round
+              </button>
+              <button onClick={moveMapAndResize}
+                className='relative z-50'
+
+              >Toggle Full Screen</button>
+              
+            </div>
+          </div>
+        </div>}
+      <div ref={mapContainerRef} style={{ width: '400px', height: '300px' }}></div>
+    </div>
   );
 };
 
 export default GameComponent;
-
-
-
-{showResult && 
-      
-  <div class="absolute bottom-5 right-5 z-10">
-    <div
-      id='resultMap'
-      className="absolute w-screen h-5/6"
-    >
-      {/* Map will be rendered here */}
-    </div>
-    <button onClick={nextRound}
-      class="bg-yellow-600 py-2 px-4 rounded-lg text-base">
-      Next Round
-    </button>
-  </div>}
-
-
-<div class={`result-container ${!showResult ? 'hidden' : ''}`}>
-        <div
-          id='resultMap'
-          className="absolute w-screen h-5/6"
-        >
-          {/* Map will be rendered here */}
-        </div>
-        <div class="relative bg-black p-4 rounded-lg shadow-md w-96">
-        </div>
-        
-      </div>
