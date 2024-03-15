@@ -76,17 +76,17 @@ const GameComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
-  const mapRef = useRef(null);
   const [isPinned, setIsPinned] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const resultMapRef = useRef(null);
   const round = useRef(1);
   const totalScore = useRef(0);
   const score = useRef(0);
+  const mapRef = useRef(null);
 
   const mapContainerRef = useRef(null);
-  const [currentParentId, setCurrentParentId] = useState('placeholder1');
-  const [map, setMap] = useState(null);
+  const [currentParentId, setCurrentParentId] = useState('inGame');
+  //const [mapRef, setMap] = useState(null);
 
 
 
@@ -102,19 +102,13 @@ const GameComponent = () => {
         await loader.load();
         const { google } = window;
         console.log('Google Maps API loaded:');
-        const initializedMap = new google.maps.Map(mapContainerRef.current, {
-          center: { lat: 0, lng: 0 },
-          zoom: 2,
-        });
-        setMap(initializedMap);
+        const initializedMap = new google.maps.Map(mapContainerRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
+        mapRef.current = initializedMap;
 
+        setTimeout(() => {
+        initializeMarker()
+        }, 1000);
 
-
-
-
-
-
-        //initializeMarker()
 
 
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
@@ -138,35 +132,22 @@ const GameComponent = () => {
 
 
   const moveMapAndResize = () => {
+
     setShowResult(!showResult)
+
     setTimeout(() => {
       const newParentId = currentParentId === 'inGame' ? 'resultsMap' : 'inGame';
       const newParent = document.getElementById(newParentId);
       newParent.appendChild(mapContainerRef.current);
-
-      // Check the target parent to determine the size
-      if (newParentId === 'resultsMap') {
-        // Full screen
-        mapContainerRef.current.style.width = '100vw';
-        mapContainerRef.current.style.height = '100vh';
-        mapContainerRef.current.style.position = 'fixed';
-        mapContainerRef.current.style.top = '0';
-        mapContainerRef.current.style.left = '0';
-      } else {
-        // Small size
-        mapContainerRef.current.style.width = '400px';
-        mapContainerRef.current.style.height = '300px';
-        mapContainerRef.current.style.position = 'relative';
-      }
-
+     
       setCurrentParentId(newParentId);
 
-      if (map) {
+      if (mapRef) {
         // Trigger resize to adapt the map to its new container size
-        google.maps.event.trigger(map, 'resize');
-        generateRandomMarkers(map);
+        google.maps.event.trigger(mapRef, 'resize');
+        //generateRandomMarkers(map);
       }
-    }, 1000);
+    }, 100);
   };
 
   const showRandomStreetView = useCallback((features, attempt = 0) => {
@@ -282,6 +263,7 @@ const GameComponent = () => {
   }
 
   const handleGuess = () => {
+    moveMapAndResize();
     const user_position = {
       lat: window.marker.position.lat,
       lng: window.marker.position.lng
@@ -290,8 +272,8 @@ const GameComponent = () => {
       lat: streetViewPanorama.current.location.latLng.lat(),
       lng: streetViewPanorama.current.location.latLng.lng()
     };
-    const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
-    console.log(distanceG / 1000);
+    //const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
+    //console.log(distanceG / 1000);
 
     const from = [user_position.lng, user_position.lat];
     const to = [map_position.lng, map_position.lat];
@@ -343,12 +325,9 @@ const GameComponent = () => {
     setTimeout(() => {
       const bounds = new google.maps.LatLngBounds();
       bounds.extend(user_position);
-      //bounds.extend(map_position);
-      console.log(bounds);
-      console.log(mapRef.current.getBounds());
-      mapRef.current.fitBounds(bounds, 100);
-      console.log(mapRef.current.getBounds());
-    }, 5000);
+      bounds.extend(map_position);
+      mapRef.current.fitBounds(bounds);
+    }, 100);
 
     /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
       // Adjust the zoom level after the map has fit the bounds
@@ -356,32 +335,17 @@ const GameComponent = () => {
       mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
     });*/
 
-
-
-
-
-
-
-    setShowResult(!showResult);
-    setTimeout(() => {
-      moveToContainer('resultMap')
-
-
-    }, 100);
+  
   }
 
 
   const nextRound = () => {
-    setShowResult(false);
+    moveMapAndResize();
     console.log('Next round');
     console.log(window.marker);
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
     round.current++;
-    setTimeout(() => {
-      moveToContainer('map-container')
-
-    }, 100);
   }
 
   const initializeMarker = () => {
@@ -425,20 +389,6 @@ const GameComponent = () => {
       });
     });
   }
-
-  const moveToContainer = (targetContainerId) => {
-    const mapDiv = mapElementRef.current; // The current map <div>
-    const targetContainer = document.getElementById(targetContainerId); // The target container
-    if (mapDiv && targetContainer) {
-      // Move the map's <div> to the target container
-      google.maps.event.trigger(mapRef.current, 'resize'); // Important: Trigger a resize event on the map
-      targetContainer.appendChild(mapDiv.childNodes[0]);
-      mapElementRef.current = targetContainer
-
-    }
-  };
-
-
 
   return (
     <div class="flex flex-auto relative h-screen">
@@ -562,7 +512,16 @@ const GameComponent = () => {
             </button>
           </div>
 
-          <div id="inGame" style={{ height: '300px', margin: '20px' }}></div>
+          <div id="inGame" className='relative' style={{
+              width: isHovered ? mapSize.width : '250px',
+              height: isHovered ? mapSize.height : '150px',
+              transition: 'all 0.3s ease',
+              minHeight: '150px',
+              minWidth: '250px',
+            }}>
+            <div ref={mapContainerRef} className='h-full w-full'></div>
+
+          </div>
           <button id="guessButton"
             onClick={handleGuess}
             style={{
@@ -572,15 +531,11 @@ const GameComponent = () => {
             className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
             Guess
           </button>
-          <button onClick={moveMapAndResize}
-            className='relative z-50'
-
-          >Toggle Full Screen</button>
+          
         </div>
       </>
 
       {showResult &&
-
         <div class="result-container w-full h-full">
           <div class="top-part h-5/6">
             <div class="flex justify-center items-center pt-5 absolute left-0 right-0 z-10">
@@ -588,7 +543,9 @@ const GameComponent = () => {
                 <div class="text-white text-lg font-bold">Tour {round.current}/5</div>
               </div>
             </div>
-            <div id="resultsMap"></div> {/* This div becomes the full-screen container */}
+            <div id="resultsMap" className="relative"style={{ width: '100vw', height: '100vh' }}>
+
+            </div> {/* style={{ width: '100vw', height: '100vh' }} */}
           </div>
           <div class="bottom-part h-1/6">
             <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
@@ -600,15 +557,11 @@ const GameComponent = () => {
                 className="bg-green-500 py-2 px-4 rounded-lg text-base">
                 Next Round
               </button>
-              <button onClick={moveMapAndResize}
-                className='relative z-50'
-
-              >Toggle Full Screen</button>
               
+
             </div>
           </div>
         </div>}
-      <div ref={mapContainerRef} style={{ width: '400px', height: '300px' }}></div>
     </div>
   );
 };
