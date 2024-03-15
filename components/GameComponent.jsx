@@ -7,6 +7,7 @@ import { randomPosition } from '@turf/random';
 import distance from '@turf/distance';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
+import { fetchGeoJsonData } from '@/utils/geoJsonUtils';
 
 // Importation des images depuis le dossier public.
 import logo from "@/public/logo.png";
@@ -15,19 +16,6 @@ import minus from "@/public/Minus_black.svg";
 import arrow from "@/public/Arrow.svg";
 import stick from "@/public/World_Game_Stick.svg";
 
-// Fonction asynchrone pour charger les données GeoJSON.
-const fetchGeoJsonData = async () => {
-  try {
-    const response = await fetch('/countries.geojson');
-    if (!response.ok) {
-      throw new Error('Network response was not ok.');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error loading the GeoJSON file:", error);
-    throw error; // Re-lancer l'erreur pour qu'elle soit gérée par la fonction appelante.
-  }
-};
 
 // Fonction pour générer un point aléatoire à l'intérieur d'une entité (feature) GeoJSON.
 const generateRandomPointInFeature = (feature) => {
@@ -47,8 +35,7 @@ async function loadAdvancedMarkerLibrary() {
 
 // Le composant principal du jeu.
 const GameComponent = () => {
-  // Utilisation des hooks pour gérer l'état et les références.
-  const mapElementRef = useRef(null);
+// Utilisation des hooks pour gérer l'état et les références.
   const streetViewElementRef = useRef(null);
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
@@ -57,30 +44,44 @@ const GameComponent = () => {
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
   const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
-  const mapRef = useRef(null);
+  const [isIncreaseDisabled, setIsIncreaseDisabled] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [showResult, setShowResult] = useState(false);
-  const resultMapRef = useRef(null);
   const round = useRef(1);
   const totalScore = useRef(0);
+  const distanceG = useRef(0);
   const score = useRef(0);
+  const mapRef = useRef(null);
+
+  const mapContainerRef = useRef(null);
+  const [currentParentId, setCurrentParentId] = useState('inGame');
+  //const [mapRef, setMap] = useState(null);
+
+
+
+  // move here fetch data
 
   useEffect(() => {
-    // Initialisation de la carte et chargement des données GeoJSON.
+// Initialisation de la carte et chargement des données GeoJSON.
     const initMap = async () => {
       try {
         const loader = new Loader({
-          apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Remplacer par votre clé API réelle.
+          apiKey: "AIzaSyBAD4-_WMcL2BjZ-DxOURQ3rgfVtNGABvI", // Replace with your actual API key
           version: "weekly",
         });
         await loader.load();
         const { google } = window;
         console.log('Google Maps API loaded:');
-        const map = new google.maps.Map(mapElementRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
-        mapRef.current = map; // Store the map object in useRef
-        initializeMarker()
+        const initializedMap = new google.maps.Map(mapContainerRef.current, { center: { lat: 0, lng: 0 }, zoom: 2, mapId: "749a96b8b4bd0e90", disableDefaultUI: true, draggableCursor: 'crosshair', });
+        mapRef.current = initializedMap;
 
-        // Initialisation du panorama Street View.
+        setTimeout(() => {
+        initializeMarker()
+        }, 1000);
+
+
+
+// Initialisation du panorama Street View.
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
           pov: { heading: 0, pitch: 0 },
           disableDefaultUI: true,
@@ -88,7 +89,7 @@ const GameComponent = () => {
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
-        // Chargement des données GeoJSON.
+// Chargement des données GeoJSON.
         const data = await fetchGeoJsonData();
         setGlobalGeoJsonData(data);
         showRandomStreetView(data.features);
@@ -100,6 +101,24 @@ const GameComponent = () => {
     initMap();
   }, []);
 
+  const moveMapAndResize = () => {
+
+    setShowResult(!showResult)
+
+    setTimeout(() => {
+      const newParentId = currentParentId === 'inGame' ? 'resultsMap' : 'inGame';
+      const newParent = document.getElementById(newParentId);
+      newParent.appendChild(mapContainerRef.current);
+     
+      setCurrentParentId(newParentId);
+
+      if (mapRef) {
+        // Trigger resize to adapt the map to its new container size
+        google.maps.event.trigger(mapRef, 'resize');
+        //generateRandomMarkers(map);
+      }
+    }, 100);
+  };
 
   // Fonction pour afficher une vue Street View aléatoire.
   const showRandomStreetView = useCallback((features, attempt = 0) => {
@@ -121,7 +140,7 @@ const GameComponent = () => {
     }
   }, []);
 
-  // Fonction pour traiter les données Street View.
+// Fonction pour traiter les données Street View.
   const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
     if (status === 'OK') {
       streetViewPanorama.current.setPano(data.location.pano);
@@ -135,27 +154,48 @@ const GameComponent = () => {
     }
   }, [showRandomStreetView]);
 
-  // Fonction pour augmenter la taille de la carte.
-  const increaseMapSize = () => {
-    setIsDecreaseDisabled(false);
+// Fonction pour augmenter la taille de la carte.
+const increaseMapSize = () => {
+  // Define the maximum size as 80% of the screen dimensions
+  const maxScreenWidth = window.innerWidth * 0.8;
+  const maxScreenHeight = window.innerHeight * 0.8;
 
-    setMapSize(currentSize => ({
-      width: `${parseInt(currentSize.width) * 1.5}px`, // augmenter la largeur de 10%
-      height: `${parseInt(currentSize.height) * 1.5}px`, // augmenter la hauteur de 10%
-    }));
-  };
-  // Fonction pour diminuer la taille de la carte.
+  setMapSize(currentSize => {
+    const newWidth = parseInt(currentSize.width) * 1.5;
+    const newHeight = parseInt(currentSize.height) * 1.5;
+
+    // Check if the new size exceeds the maximum allowed size
+    if (newWidth >= maxScreenWidth || newHeight >= maxScreenHeight) {
+      setIsIncreaseDisabled(true); // Disable the increase button if max size reached
+      // Optionally, adjust to set the size exactly to the maximum if above
+      return {
+        width: Math.min(newWidth, maxScreenWidth),
+        height: Math.min(newHeight, maxScreenHeight),
+      };
+    }
+
+    // Enable the increase button if not at max size
+    setIsIncreaseDisabled(false);
+    return {
+      width: newWidth,
+      height: newHeight,
+    };
+  });
+};
+
+// Fonction pour diminuer la taille de la carte.
   const decreaseMapSize = () => {
     setMapSize(currentSize => {
       const newWidth = parseInt(currentSize.width) / 1.5;
       const newHeight = parseInt(currentSize.height) / 1.5;
 
       // Vérifier si la taille est inférieure à la taille minimale
-      if (newWidth <= 300 || newHeight <= 200) {
-        setIsDecreaseDisabled(true); // Désactiver le bouton de diminution
+      if (newWidth <= 250 || newHeight <= 150) {
+        setIsDecreaseDisabled(true)
+        // Optionally, you can adjust this to set the size exactly to the minimum if below
         return {
-          width: Math.max(newWidth, 300),
-          height: Math.max(newHeight, 200),
+          width: Math.max(newWidth, 250),
+          height: Math.max(newHeight, 150),
         };
       }
 
@@ -168,11 +208,12 @@ const GameComponent = () => {
     });
   };
 
-  // Fonction pour gérer le survol de la carte.
+// Fonction pour gérer le survol de la carte.
   const onMouseEnter = () => {
     if (isPinned) {
       return;
     }
+    // Clear any existing timeout to prevent unwanted size reset if we hover again before the timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
@@ -181,53 +222,54 @@ const GameComponent = () => {
     setIsHovered(true);
   };
 
-  // Fonction pour gérer la sortie du survol de la carte.
+// Fonction pour gérer la sortie du survol de la carte.
   const onMouseLeave = () => {
     if (isPinned) {
       return;
-    }
+    }    // Set a timeout to reset the hover state after a delay
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
       hoverTimeoutRef.current = null;
     }, 1000); // Attendre 1 seconde avant de masquer les boutons
   };
 
-  // Fonction pour zoomer sur la carte.
+// Fonction pour zoomer sur la carte.
   const ZoomIn = () => {
     mapRef.current.setZoom(mapRef.current.zoom + 1);
 
   }
-  // Fonction pour dézoomer sur la carte.
+// Fonction pour dézoomer sur la carte.
   const ZoomOut = () => {
     mapRef.current.setZoom(mapRef.current.zoom - 1);
 
   }
-  // Fonction pour épingler la carte.
+// Fonction pour épingler la carte.
   const pinMap = () => {
-    setIsPinned(!isPinned);
+    
     // si la carte est épinglée, faire pivoter l'image vers la droite
     if (isPinned) {
-      document.getElementById('pinButton').style.transform = 'rotate(90deg)';
+      document.getElementById('pinButton').style.transform = 'rotate(0deg)';
     }
     // sinon, faire pivoter l'image vers la gauche
     else {
-      document.getElementById('pinButton').style.transform = 'rotate(0deg)';
+      document.getElementById('pinButton').style.transform = 'rotate(90deg)';
     }
+    setIsPinned(!isPinned);
   }
 
-  // Fonction pour gérer le clic sur le bouton "Guess".
+// Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = () => {
-    const user_position = { 
-      lat: window.marker.position.lat, 
-      lng: window.marker.position.lng 
+    moveMapAndResize();
+    const user_position = {
+      lat: window.marker.position.lat,
+      lng: window.marker.position.lng
     };
-    const map_position = { 
-      lat: streetViewPanorama.current.location.latLng.lat(), 
-      lng: streetViewPanorama.current.location.latLng.lng() 
+    const map_position = {
+      lat: streetViewPanorama.current.location.latLng.lat(),
+      lng: streetViewPanorama.current.location.latLng.lng()
     };
-    // Calculer la distance entre les deux points
-    const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
-    console.log(distanceG/1000);
+    //const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
+    //console.log(distanceG / 1000);
 
     const from = [user_position.lng, user_position.lat];
     const to = [map_position.lng, map_position.lat];
@@ -236,14 +278,15 @@ const GameComponent = () => {
     console.log(distance2);
     score.current += 5000 - distance2 * 2000;
     totalScore.current += score.current;
-    
+    distanceG.current = Math.round(distance2);
+
     const lineSymbol = {
       path: "M 0,-1 0,1",
       strokeOpacity: 1,
       scale: 4,
     };
-    // Dessiner une ligne entre les deux points
-    const line = new google.maps.Polyline({
+
+     window.line = new google.maps.Polyline({
       path: [user_position, map_position],
       geodesic: false,
       strokeColor: '#000000',
@@ -261,16 +304,16 @@ const GameComponent = () => {
 
     // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
-      // Créer un marqueur pour la position de l'utilisateur
+// Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
       markerDiv.src = '/Marker.svg';
       markerDiv.style.className = 'custom-marker';
       markerDiv.style.width = '30px';
       markerDiv.style.height = '30px';
-      markerDiv.style.transform = 'translate(0, +40%)'; // Centrer le marqueur
+      markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
 
-      // Créer une instance de AdvancedMarkerElement
-      const marker = new AdvancedMarkerElement({
+      // Creating an instance of AdvancedMarkerElement
+        window.marker2 = new AdvancedMarkerElement({
         position: map_position,
         map: mapRef.current,
         title: "Your Title Here", // Optional
@@ -278,35 +321,34 @@ const GameComponent = () => {
       });
     });
     setTimeout(() => {
-    const bounds = new google.maps.LatLngBounds();
+      const bounds = new google.maps.LatLngBounds();
       bounds.extend(user_position);
       bounds.extend(map_position);
-      console.log(bounds);
-      console.log(mapRef.current.getBounds());
-      mapRef.current.fitBounds(bounds,100);
-      console.log(mapRef.current.getBounds());
-    }, 5000);
-    setShowResult(!showResult);
-    setTimeout(() => {
-      moveToContainer('resultMap')
-
+      mapRef.current.fitBounds(bounds);
     }, 100);
+
+    /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
+      // Adjust the zoom level after the map has fit the bounds
+      var currentZoom = mapRef.current.getZoom();
+      mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
+    });*/
+
+  
   }
 
-  // Fonction pour passer au tour suivant.
+
   const nextRound = () => {
-    setShowResult(false);
+    moveMapAndResize();
+    showRandomStreetView(globalGeoJsonData.features);
     console.log('Next round');
-    console.log(window.marker);
+    window.marker.setMap(null);
+    window.marker2.setMap(null);
+    window.line.setMap(null);
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
     round.current++;
-    setTimeout(() => {
-      moveToContainer('map-container')
-
-    }, 100);
   }
-  // Fonction pour initialiser le marqueur avancé.
+
   const initializeMarker = () => {
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
       mapRef.current.addListener('click', (e) => {
@@ -319,38 +361,34 @@ const GameComponent = () => {
         markerDiv.style.className = 'custom-marker';
         markerDiv.style.width = '30px';
         markerDiv.style.height = '30px';
-        markerDiv.style.transform = 'translate(0, +40%)'; // Centrer le marqueur
+        markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
 
-
-
-
+        
+        // Creating an instance of AdvancedMarkerElement
         window.marker = new AdvancedMarkerElement({
           position: {
             lat: e.latLng.lat(),
             lng: e.latLng.lng(),
           },
           map: mapRef.current,
-          title: "Your Title Here",
-          content: markerDiv, 
+          title: "Your Title Here", // Optional
+          content: markerDiv, // Optional
 
+          // Additional properties based on AdvancedMarkerElementOptions
         });
+        // add my photo Marker to the map
+        //window.marker.content.innerHTML = imgElement
+
+
+        // Optional: Listen to events on the AdvancedMarkerElement
+        /*window.marker.addListener('click', () => {
+          console.log('AdvancedMarker clicked');
+          // Handle click event
+        });*/
       });
     });
   }
 
-  // Fonction pour déplacer le contenu de la carte vers un autre conteneur.
-  const moveToContainer = (targetContainerId) => {
-    const mapDiv = mapElementRef.current; 
-    const targetContainer = document.getElementById(targetContainerId); 
-    if (mapDiv && targetContainer) {
-      google.maps.event.trigger(mapRef.current, 'resize');
-      targetContainer.appendChild(mapDiv.childNodes[0]);
-      mapElementRef.current = targetContainer
-
-    }
-  };
-
-// Retourner le contenu du composant.
   return (
     <div class="flex flex-auto relative h-screen">
       <>
@@ -382,7 +420,7 @@ const GameComponent = () => {
         {<div ref={streetViewElementRef}
           className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
         </div>}
-        <div className={`absolute bottom-5 left-5 z-10 ${showResult ? 'hidden' : ''}`}
+        <div className={`absolute bottom-5 left-5 z-10 ${showResult ? 'hidden' : ''} ${isHovered ? 'opacity-100' : 'opacity-50'}`}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}>
           <div id="mapButtons"
@@ -393,7 +431,9 @@ const GameComponent = () => {
             }}>
 
             <button onClick={increaseMapSize}
+            disabled={isIncreaseDisabled}
               style={{
+                backgroundColor: isIncreaseDisabled ? 'gray' : 'white',
                 opacity: isHovered ? 1 : 0,
                 transition: 'all 0.3s ease',
                 transform: 'rotate(225deg)',
@@ -473,34 +513,31 @@ const GameComponent = () => {
             </button>
           </div>
 
-          <div
-            id="map-container"
-            ref={mapElementRef}
-            style={{
+          <div id="inGame" className='relative overflow-hidden rounded-lg' style={{
               width: isHovered ? mapSize.width : '250px',
               height: isHovered ? mapSize.height : '150px',
               transition: 'all 0.3s ease',
               minHeight: '150px',
               minWidth: '250px',
-            }}
-            className="relative"
-          >
-            {/* Map will be rendered here */}
+            }}>
+            <div ref={mapContainerRef} className=' relative h-full w-full '></div>
+
           </div>
           <button id="guessButton"
             onClick={handleGuess}
+            disabled={!window.marker}
             style={{
               width: isHovered ? mapSize.width : '250px',
               transition: 'all 0.3s ease',
             }}
-            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:scale-100">
+            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:hover:scale-100">
             Guess
           </button>
+          
         </div>
       </>
 
       {showResult &&
-
         <div class="result-container w-full h-full">
           <div class="top-part h-5/6">
             <div class="flex justify-center items-center pt-5 absolute left-0 right-0 z-10">
@@ -508,19 +545,16 @@ const GameComponent = () => {
                 <div class="text-white text-lg font-bold">Tour {round.current}/5</div>
               </div>
             </div>
-            <div
-              id='resultMap'
-              className="w-full h-full flex relative overflow-hidden"
-            >
-              {/* Map will be rendered here */}
-            </div>
+            <div id="resultsMap" className="relative h-full">
+
+            </div> 
           </div>
           <div class="bottom-part h-1/6">
             <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
-            <div class="text-white">
-              <div class=" uppercase uppercase font-bold">0 km</div>
-              <div class="text-lg font-bold text-xs">Depuis la localisation</div>
-            </div>
+              <div class="text-white">
+                <div class=" uppercase uppercase font-bold">{distanceG.current} km</div>
+                <div class="text-lg font-bold text-xs">Depuis la localisation</div>
+              </div>
               <button onClick={nextRound}
                 className="bg-green-500 py-2 px-4 rounded-lg text-base">
                 Next Round
