@@ -8,14 +8,15 @@ import distance from '@turf/distance';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
 import { fetchGeoJsonData } from '@/utils/geoJsonUtils';
+import Timer from './Timer'; // Adjust the import path as necessary
+
 
 // Importation des images depuis le dossier public.
-import logo from "@/public/logo.png";
+import logo from "@/public/logo2.png";
 import plus from "@/public/Plus_black.svg";
 import minus from "@/public/Minus_black.svg";
 import arrow from "@/public/Arrow.svg";
 import stick from "@/public/World_Game_Stick.svg";
-
 
 // Fonction pour générer un point aléatoire à l'intérieur d'une entité (feature) GeoJSON.
 const generateRandomPointInFeature = (feature) => {
@@ -43,7 +44,7 @@ const GameComponent = () => {
   const [mapSize, setMapSize] = useState({ width: '250', height: '150' });
   const [isHovered, setIsHovered] = useState(false);
   const hoverTimeoutRef = useRef(null);
-  const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(false);
+  const [isDecreaseDisabled, setIsDecreaseDisabled] = useState(true);
   const [isIncreaseDisabled, setIsIncreaseDisabled] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -52,14 +53,32 @@ const GameComponent = () => {
   const distanceG = useRef(0);
   const score = useRef(0);
   const mapRef = useRef(null);
+  const [guessB, isGuessB] = useState(false);
 
   const mapContainerRef = useRef(null);
   const [currentParentId, setCurrentParentId] = useState('inGame');
-  //const [mapRef, setMap] = useState(null);
+
+  // Constants for min and max sizes
+const minWidth = 250;
+const minHeight = 150;
+const maxWidth = window.innerWidth * 0.8;
+const maxHeight = window.innerHeight * 0.8;
+
+const initialTime = 300; // 5 minutes in seconds
+const [timeLeft, setTimeLeft] = useState(initialTime);
 
 
+const resetTimer = (newTime = initialTime) => {
+  setTimeLeft(newTime);
+};
 
-  // move here fetch data
+const handleTimerComplete = () => {
+  console.log('Timer completed!');
+  resetTimer();
+  // Execute any actions here, like ending the game round, updating state, etc.
+  // Example: endRound();
+};
+
 
   useEffect(() => {
 // Initialisation de la carte et chargement des données GeoJSON.
@@ -113,9 +132,7 @@ const GameComponent = () => {
       setCurrentParentId(newParentId);
 
       if (mapRef) {
-        // Trigger resize to adapt the map to its new container size
         google.maps.event.trigger(mapRef, 'resize');
-        //generateRandomMarkers(map);
       }
     }, 100);
   };
@@ -145,6 +162,11 @@ const GameComponent = () => {
     if (status === 'OK') {
       streetViewPanorama.current.setPano(data.location.pano);
       streetViewPanorama.current.setVisible(true);
+
+      setTimeout(() => {
+        streetViewPanorama.current.setPano(data.location.pano);
+      streetViewPanorama.current.setVisible(true);
+      }, 10000);
       console.log('Street View data:', data);
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
@@ -154,28 +176,28 @@ const GameComponent = () => {
     }
   }, [showRandomStreetView]);
 
-// Fonction pour augmenter la taille de la carte.
-const increaseMapSize = () => {
-  // Define the maximum size as 80% of the screen dimensions
-  const maxScreenWidth = window.innerWidth * 0.8;
-  const maxScreenHeight = window.innerHeight * 0.8;
 
+
+
+
+// Function to update the map size and button states
+const adjustMapSize = (adjustmentFactor) => {
   setMapSize(currentSize => {
-    const newWidth = parseInt(currentSize.width) * 1.5;
-    const newHeight = parseInt(currentSize.height) * 1.5;
+    let newWidth = adjustmentFactor > 1 ? parseInt(currentSize.width) * adjustmentFactor : parseInt(currentSize.width) / Math.abs(adjustmentFactor);
+    let newHeight = adjustmentFactor > 1 ? parseInt(currentSize.height) * adjustmentFactor : parseInt(currentSize.height) / Math.abs(adjustmentFactor);
 
-    // Check if the new size exceeds the maximum allowed size
-    if (newWidth >= maxScreenWidth || newHeight >= maxScreenHeight) {
-      setIsIncreaseDisabled(true); // Disable the increase button if max size reached
-      // Optionally, adjust to set the size exactly to the maximum if above
-      return {
-        width: Math.min(newWidth, maxScreenWidth),
-        height: Math.min(newHeight, maxScreenHeight),
-      };
-    }
+    // Clamping the newWidth and newHeight within the min and max boundaries
+    newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+    newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
 
-    // Enable the increase button if not at max size
-    setIsIncreaseDisabled(false);
+    // Determine button enabled states based on the new dimensions
+    const isIncreaseDisabled = newWidth === maxWidth || newHeight === maxHeight;
+    const isDecreaseDisabled = newWidth === minWidth || newHeight === minHeight;
+
+    // Update the button states
+    setIsIncreaseDisabled(isIncreaseDisabled);
+    setIsDecreaseDisabled(isDecreaseDisabled);
+
     return {
       width: newWidth,
       height: newHeight,
@@ -183,30 +205,10 @@ const increaseMapSize = () => {
   });
 };
 
-// Fonction pour diminuer la taille de la carte.
-  const decreaseMapSize = () => {
-    setMapSize(currentSize => {
-      const newWidth = parseInt(currentSize.width) / 1.5;
-      const newHeight = parseInt(currentSize.height) / 1.5;
+// Handlers for button clicks
+const increaseSize = () => adjustMapSize(1.5); // Increase by 50%
+const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negative factor for simplicity in calculation
 
-      // Vérifier si la taille est inférieure à la taille minimale
-      if (newWidth <= 250 || newHeight <= 150) {
-        setIsDecreaseDisabled(true)
-        // Optionally, you can adjust this to set the size exactly to the minimum if below
-        return {
-          width: Math.max(newWidth, 250),
-          height: Math.max(newHeight, 150),
-        };
-      }
-
-      // Activer le bouton de diminution
-      setIsDecreaseDisabled(false);
-      return {
-        width: newWidth,
-        height: newHeight,
-      };
-    });
-  };
 
 // Fonction pour gérer le survol de la carte.
   const onMouseEnter = () => {
@@ -276,7 +278,7 @@ const increaseMapSize = () => {
     const options = { units: 'kilometers' };
     const distance2 = distance(from, to, options);
     console.log(distance2);
-    score.current += 5000 - distance2 * 2000;
+    score.current = Math.round(5000* Math.exp(-10*distance2/2000));
     totalScore.current += score.current;
     distanceG.current = Math.round(distance2);
 
@@ -306,17 +308,19 @@ const increaseMapSize = () => {
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
 // Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
-      markerDiv.src = '/Marker.svg';
+      markerDiv.src = '/mapPoint.webp';
       markerDiv.style.className = 'custom-marker';
-      markerDiv.style.width = '30px';
-      markerDiv.style.height = '30px';
+      markerDiv.style.width = '40px';
+      markerDiv.style.height = '40px';
       markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+      markerDiv.style.borderRadius = '30px';
+        markerDiv.style.borderWidth = '4px';
+        markerDiv.style.borderColor = 'white';
 
       // Creating an instance of AdvancedMarkerElement
         window.marker2 = new AdvancedMarkerElement({
         position: map_position,
         map: mapRef.current,
-        title: "Your Title Here", // Optional
         content: markerDiv, // Optional
       });
     });
@@ -347,6 +351,7 @@ const increaseMapSize = () => {
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
     round.current++;
+    isGuessB(false);
   }
 
   const initializeMarker = () => {
@@ -357,37 +362,28 @@ const increaseMapSize = () => {
         }
 
         const markerDiv = document.createElement('img');
-        markerDiv.src = '/Marker.svg';
+        markerDiv.src = '/Marker5.webp';
         markerDiv.style.className = 'custom-marker';
-        markerDiv.style.width = '30px';
-        markerDiv.style.height = '30px';
-        markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
-
+        markerDiv.style.width = '50';
+        markerDiv.style.height = '50px';
+        markerDiv.style.transform = 'translate(0, +20%)';
         
-        // Creating an instance of AdvancedMarkerElement
+        
         window.marker = new AdvancedMarkerElement({
           position: {
             lat: e.latLng.lat(),
             lng: e.latLng.lng(),
           },
           map: mapRef.current,
-          title: "Your Title Here", // Optional
-          content: markerDiv, // Optional
+          content: markerDiv, 
 
-          // Additional properties based on AdvancedMarkerElementOptions
         });
-        // add my photo Marker to the map
-        //window.marker.content.innerHTML = imgElement
-
-
-        // Optional: Listen to events on the AdvancedMarkerElement
-        /*window.marker.addListener('click', () => {
-          console.log('AdvancedMarker clicked');
-          // Handle click event
-        });*/
+        isGuessB(true);
       });
     });
   }
+
+
 
   return (
     <div class="flex flex-auto relative h-screen">
@@ -407,12 +403,10 @@ const increaseMapSize = () => {
               <div class="text-lg font-bold">{totalScore.current}</div>
             </div>
           </div>
+          <Timer timeLeft={timeLeft} resetTimer={setTimeLeft} onComplete={handleTimerComplete} />
 
-          <span class="bg-yellow-600 py-2 px-4 rounded-lg text-base absolute left-1/2 transform -translate-x-1/2">
-            Timer
-          </span>
           <Image
-            className="h-10 w-auto mr-4"
+            className="h-20 w-auto mr-4"
             src={logo}
             alt="logo"
           />
@@ -430,7 +424,7 @@ const increaseMapSize = () => {
               transition: 'all 0.3s ease',
             }}>
 
-            <button onClick={increaseMapSize}
+            <button onClick={increaseSize}
             disabled={isIncreaseDisabled}
               style={{
                 backgroundColor: isIncreaseDisabled ? 'gray' : 'white',
@@ -445,7 +439,7 @@ const increaseMapSize = () => {
                 height={20}
               />
             </button>
-            <button onClick={decreaseMapSize}
+            <button onClick={decreaseSize}
               disabled={isDecreaseDisabled}
               style={{
                 opacity: isHovered ? 1 : 0,
@@ -525,17 +519,19 @@ const increaseMapSize = () => {
           </div>
           <button id="guessButton"
             onClick={handleGuess}
-            disabled={!window.marker}
+            disabled={!guessB}
             style={{
               width: isHovered ? mapSize.width : '250px',
               transition: 'all 0.3s ease',
             }}
-            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer border-none rounded-full text-stone-800 font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 hover:bg-yellow-950 duration-75 disabled:bg-gray-300 disabled:hover:scale-100">
+            className="h-10 w-full py-2 mt-2 text-lg cursor-pointer rounded-full text-white font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75 disabled:bg-black disabled:hover:scale-100 disabled:opacity-50">
             Guess
           </button>
           
         </div>
       </>
+      <div button onClick={moveMapAndResize} title="Revenir au point de départ" class="absolute bottom-20 right-20 h-20 w-20 z-10">
+          </div>
 
       {showResult &&
         <div class="result-container w-full h-full">
@@ -556,7 +552,7 @@ const increaseMapSize = () => {
                 <div class="text-lg font-bold text-xs">Depuis la localisation</div>
               </div>
               <button onClick={nextRound}
-                className="bg-green-500 py-2 px-4 rounded-lg text-base">
+                className="bg-green-500 py-2 px-4 rounded-full text-lg text-white shadown-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75">
                 Next Round
               </button>
               <div class="text-white">
