@@ -17,6 +17,7 @@ import plus from "@/public/Plus_black.svg";
 import minus from "@/public/Minus_black.svg";
 import arrow from "@/public/Arrow.svg";
 import stick from "@/public/World_Game_Stick.svg";
+import back from "@/public/retour.svg";
 
 // Fonction pour générer un point aléatoire à l'intérieur d'une entité (feature) GeoJSON.
 const generateRandomPointInFeature = (feature) => {
@@ -36,7 +37,7 @@ async function loadAdvancedMarkerLibrary() {
 
 // Le composant principal du jeu.
 const GameComponent = () => {
-// Utilisation des hooks pour gérer l'état et les références.
+  // Utilisation des hooks pour gérer l'état et les références.
   const streetViewElementRef = useRef(null);
   const [globalGeoJsonData, setGlobalGeoJsonData] = useState(null);
   const streetViewServiceRef = useRef(null);
@@ -54,34 +55,36 @@ const GameComponent = () => {
   const score = useRef(0);
   const mapRef = useRef(null);
   const [guessB, isGuessB] = useState(false);
+  const [initialStreetViewLocation, setInitialStreetViewLocation] = useState(null);
+
 
   const mapContainerRef = useRef(null);
   const [currentParentId, setCurrentParentId] = useState('inGame');
 
   // Constants for min and max sizes
-const minWidth = 250;
-const minHeight = 150;
-const maxWidth = window.innerWidth * 0.8;
-const maxHeight = window.innerHeight * 0.8;
+  const minWidth = 250;
+  const minHeight = 150;
+  const maxWidth = window.innerWidth * 0.8;
+  const maxHeight = window.innerHeight * 0.8;
 
-const initialTime = 300; // 5 minutes in seconds
-const [timeLeft, setTimeLeft] = useState(initialTime);
+  const initialTime = 300; // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(initialTime);
 
 
-const resetTimer = (newTime = initialTime) => {
-  setTimeLeft(newTime);
-};
+  const resetTimer = (newTime = initialTime) => {
+    setTimeLeft(newTime);
+  };
 
-const handleTimerComplete = () => {
-  console.log('Timer completed!');
-  resetTimer();
-  // Execute any actions here, like ending the game round, updating state, etc.
-  // Example: endRound();
-};
+  const handleTimerComplete = () => {
+    console.log('Timer completed!');
+    resetTimer();
+    // Execute any actions here, like ending the game round, updating state, etc.
+    // Example: endRound();
+  };
 
 
   useEffect(() => {
-// Initialisation de la carte et chargement des données GeoJSON.
+    // Initialisation de la carte et chargement des données GeoJSON.
     const initMap = async () => {
       try {
         const loader = new Loader({
@@ -95,12 +98,12 @@ const handleTimerComplete = () => {
         mapRef.current = initializedMap;
 
         setTimeout(() => {
-        initializeMarker()
+          initializeMarker()
         }, 1000);
 
 
 
-// Initialisation du panorama Street View.
+        // Initialisation du panorama Street View.
         streetViewPanorama.current = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
           pov: { heading: 0, pitch: 0 },
           disableDefaultUI: true,
@@ -108,7 +111,7 @@ const handleTimerComplete = () => {
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
-// Chargement des données GeoJSON.
+        // Chargement des données GeoJSON.
         const data = await fetchGeoJsonData();
         setGlobalGeoJsonData(data);
         showRandomStreetView(data.features);
@@ -128,7 +131,7 @@ const handleTimerComplete = () => {
       const newParentId = currentParentId === 'inGame' ? 'resultsMap' : 'inGame';
       const newParent = document.getElementById(newParentId);
       newParent.appendChild(mapContainerRef.current);
-     
+
       setCurrentParentId(newParentId);
 
       if (mapRef) {
@@ -157,16 +160,13 @@ const handleTimerComplete = () => {
     }
   }, []);
 
-// Fonction pour traiter les données Street View.
+  // Fonction pour traiter les données Street View.
   const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
     if (status === 'OK') {
+      setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });
       streetViewPanorama.current.setPano(data.location.pano);
       streetViewPanorama.current.setVisible(true);
 
-      setTimeout(() => {
-        streetViewPanorama.current.setPano(data.location.pano);
-      streetViewPanorama.current.setVisible(true);
-      }, 10000);
       console.log('Street View data:', data);
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
@@ -180,37 +180,37 @@ const handleTimerComplete = () => {
 
 
 
-// Function to update the map size and button states
-const adjustMapSize = (adjustmentFactor) => {
-  setMapSize(currentSize => {
-    let newWidth = adjustmentFactor > 1 ? parseInt(currentSize.width) * adjustmentFactor : parseInt(currentSize.width) / Math.abs(adjustmentFactor);
-    let newHeight = adjustmentFactor > 1 ? parseInt(currentSize.height) * adjustmentFactor : parseInt(currentSize.height) / Math.abs(adjustmentFactor);
+  // Function to update the map size and button states
+  const adjustMapSize = (adjustmentFactor) => {
+    setMapSize(currentSize => {
+      let newWidth = adjustmentFactor > 1 ? parseInt(currentSize.width) * adjustmentFactor : parseInt(currentSize.width) / Math.abs(adjustmentFactor);
+      let newHeight = adjustmentFactor > 1 ? parseInt(currentSize.height) * adjustmentFactor : parseInt(currentSize.height) / Math.abs(adjustmentFactor);
 
-    // Clamping the newWidth and newHeight within the min and max boundaries
-    newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
-    newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
+      // Clamping the newWidth and newHeight within the min and max boundaries
+      newWidth = Math.min(Math.max(newWidth, minWidth), maxWidth);
+      newHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
 
-    // Determine button enabled states based on the new dimensions
-    const isIncreaseDisabled = newWidth === maxWidth || newHeight === maxHeight;
-    const isDecreaseDisabled = newWidth === minWidth || newHeight === minHeight;
+      // Determine button enabled states based on the new dimensions
+      const isIncreaseDisabled = newWidth === maxWidth || newHeight === maxHeight;
+      const isDecreaseDisabled = newWidth === minWidth || newHeight === minHeight;
 
-    // Update the button states
-    setIsIncreaseDisabled(isIncreaseDisabled);
-    setIsDecreaseDisabled(isDecreaseDisabled);
+      // Update the button states
+      setIsIncreaseDisabled(isIncreaseDisabled);
+      setIsDecreaseDisabled(isDecreaseDisabled);
 
-    return {
-      width: newWidth,
-      height: newHeight,
-    };
-  });
-};
+      return {
+        width: newWidth,
+        height: newHeight,
+      };
+    });
+  };
 
-// Handlers for button clicks
-const increaseSize = () => adjustMapSize(1.5); // Increase by 50%
-const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negative factor for simplicity in calculation
+  // Handlers for button clicks
+  const increaseSize = () => adjustMapSize(1.5); // Increase by 50%
+  const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negative factor for simplicity in calculation
 
 
-// Fonction pour gérer le survol de la carte.
+  // Fonction pour gérer le survol de la carte.
   const onMouseEnter = () => {
     if (isPinned) {
       return;
@@ -224,7 +224,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
     setIsHovered(true);
   };
 
-// Fonction pour gérer la sortie du survol de la carte.
+  // Fonction pour gérer la sortie du survol de la carte.
   const onMouseLeave = () => {
     if (isPinned) {
       return;
@@ -235,19 +235,19 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
     }, 1000); // Attendre 1 seconde avant de masquer les boutons
   };
 
-// Fonction pour zoomer sur la carte.
+  // Fonction pour zoomer sur la carte.
   const ZoomIn = () => {
     mapRef.current.setZoom(mapRef.current.zoom + 1);
 
   }
-// Fonction pour dézoomer sur la carte.
+  // Fonction pour dézoomer sur la carte.
   const ZoomOut = () => {
     mapRef.current.setZoom(mapRef.current.zoom - 1);
 
   }
-// Fonction pour épingler la carte.
+  // Fonction pour épingler la carte.
   const pinMap = () => {
-    
+
     // si la carte est épinglée, faire pivoter l'image vers la droite
     if (isPinned) {
       document.getElementById('pinButton').style.transform = 'rotate(0deg)';
@@ -259,17 +259,14 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
     setIsPinned(!isPinned);
   }
 
-// Fonction pour gérer le clic sur le bouton "Guess".
+  // Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = () => {
     moveMapAndResize();
     const user_position = {
       lat: window.marker.position.lat,
       lng: window.marker.position.lng
     };
-    const map_position = {
-      lat: streetViewPanorama.current.location.latLng.lat(),
-      lng: streetViewPanorama.current.location.latLng.lng()
-    };
+    const map_position = initialStreetViewLocation;
     //const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
     //console.log(distanceG / 1000);
 
@@ -278,7 +275,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
     const options = { units: 'kilometers' };
     const distance2 = distance(from, to, options);
     console.log(distance2);
-    score.current = Math.round(5000* Math.exp(-10*distance2/2000));
+    score.current = Math.round(5000 * Math.exp(-10 * distance2 / 2000));
     totalScore.current += score.current;
     distanceG.current = Math.round(distance2);
 
@@ -288,7 +285,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
       scale: 4,
     };
 
-     window.line = new google.maps.Polyline({
+    window.line = new google.maps.Polyline({
       path: [user_position, map_position],
       geodesic: false,
       strokeColor: '#000000',
@@ -306,7 +303,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
 
     // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
-// Créer un marqueur pour la position de l'utilisateur
+      // Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
       markerDiv.src = '/mapPoint.webp';
       markerDiv.style.className = 'custom-marker';
@@ -314,11 +311,11 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
       markerDiv.style.height = '40px';
       markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
       markerDiv.style.borderRadius = '30px';
-        markerDiv.style.borderWidth = '4px';
-        markerDiv.style.borderColor = 'white';
+      markerDiv.style.borderWidth = '4px';
+      markerDiv.style.borderColor = 'white';
 
       // Creating an instance of AdvancedMarkerElement
-        window.marker2 = new AdvancedMarkerElement({
+      window.marker2 = new AdvancedMarkerElement({
         position: map_position,
         map: mapRef.current,
         content: markerDiv, // Optional
@@ -330,14 +327,6 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
       bounds.extend(map_position);
       mapRef.current.fitBounds(bounds);
     }, 100);
-
-    /*google.maps.event.addListenerOnce(mapRef.current, 'idle', function() {
-      // Adjust the zoom level after the map has fit the bounds
-      var currentZoom = mapRef.current.getZoom();
-      mapRef.current.setZoom(currentZoom + 5); // Zoom out a bit if too close
-    });*/
-
-  
   }
 
 
@@ -367,15 +356,15 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
         markerDiv.style.width = '50';
         markerDiv.style.height = '50px';
         markerDiv.style.transform = 'translate(0, +20%)';
-        
-        
+
+
         window.marker = new AdvancedMarkerElement({
           position: {
             lat: e.latLng.lat(),
             lng: e.latLng.lng(),
           },
           map: mapRef.current,
-          content: markerDiv, 
+          content: markerDiv,
 
         });
         isGuessB(true);
@@ -383,7 +372,10 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
     });
   }
 
-
+  const displayPano = () => {
+    streetViewPanorama.current.setPosition(initialStreetViewLocation);
+    streetViewPanorama.current.setVisible(true);
+  }
 
   return (
     <div class="flex flex-auto relative h-screen">
@@ -425,7 +417,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
             }}>
 
             <button onClick={increaseSize}
-            disabled={isIncreaseDisabled}
+              disabled={isIncreaseDisabled}
               style={{
                 backgroundColor: isIncreaseDisabled ? 'gray' : 'white',
                 opacity: isHovered ? 1 : 0,
@@ -508,12 +500,12 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
           </div>
 
           <div id="inGame" className='relative overflow-hidden rounded-lg' style={{
-              width: isHovered ? mapSize.width : '250px',
-              height: isHovered ? mapSize.height : '150px',
-              transition: 'all 0.3s ease',
-              minHeight: '150px',
-              minWidth: '250px',
-            }}>
+            width: isHovered ? mapSize.width : '250px',
+            height: isHovered ? mapSize.height : '150px',
+            transition: 'all 0.3s ease',
+            minHeight: '150px',
+            minWidth: '250px',
+          }}>
             <div ref={mapContainerRef} className=' relative h-full w-full '></div>
 
           </div>
@@ -527,11 +519,23 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
             className="h-10 w-full py-2 mt-2 text-lg cursor-pointer rounded-full text-white font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75 disabled:bg-black disabled:hover:scale-100 disabled:opacity-50">
             Guess
           </button>
-          
+
         </div>
-      </>
-      <div button onClick={moveMapAndResize} title="Revenir au point de départ" class="absolute bottom-20 right-20 h-20 w-20 z-10">
+        <div class="absolute bottom-28 right-2 z-10 flex items-center group">
+          <div class="relative bg-black bg-opacity-50 mr-2 rounded-full text-white text-xs font-bold px-2 py-1 invisible scale-0 group-hover:visible transform scale-0 group-hover:scale-100 transition-transform duration-300">
+            Revenir au point de départ
           </div>
+          <button onClick={displayPano} title="Revenir au point de départ" class="relative rounded-full bg-black bg-opacity-50 hover:bg-opacity-100 h-10 w-10 flex items-center justify-center">
+            <Image src={back}
+              alt="return"
+              width={30}
+              height={30}
+            />
+          </button>
+        </div>
+
+      </>
+
 
       {showResult &&
         <div class="result-container w-full h-full">
@@ -543,7 +547,7 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
             </div>
             <div id="resultsMap" className="relative h-full">
 
-            </div> 
+            </div>
           </div>
           <div class="bottom-part h-1/6">
             <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
@@ -556,9 +560,9 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
                 Next Round
               </button>
               <div class="text-white">
-              <div class=" uppercase font-bold">{score.current}</div>
-              <div class="text-lg font-bold text-xs">sur 5 000 points</div>
-            </div>
+                <div class=" uppercase font-bold">{score.current}</div>
+                <div class="text-lg font-bold text-xs">sur 5 000 points</div>
+              </div>
             </div>
           </div>
         </div>}
@@ -567,3 +571,4 @@ const decreaseSize = () => adjustMapSize(-1.5); // Decrease by 50%, using negati
 };
 
 export default GameComponent;
+
