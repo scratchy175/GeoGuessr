@@ -1,71 +1,70 @@
 "use client"
-import Image from "next/image";
-import { motion } from "framer-motion";
-
-import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
-import { signOut, getSession } from "next-auth/react";
-import { useRouter } from 'next/router';
-import Navbar from "@/components/Navbar";
-import footer from "@/components/footer";
-
-
-
-
-export default function Home() {
-  const [showMenu, setShowMenu] = useState(false);
-
-
-  const [session, setSession] = useState(null);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [id, setUserId] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const fetchData = async () => {
-    const session = await getSession();
-    setSession(session);
-
-    if (session) {
-      setUsername(session.user.username);
-      setEmail(session.user.email); // Retrieve email
-      setUserId(session.user.id); // Retrieve user ID
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+import './Anastasia.css';
+import React from 'react';
+const App = () => {
   return (
-    <>
-      <div className="relative h-screen">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
-            <h1 className="text-4xl font-bold mb-4">Bienvenue</h1>
-            <div>
-              <Link href="/play">
-              <button className="bg-orange-500 hover:bg-blue-500 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded">Jouer</button>
-              </Link>
-            </div>
-          </div>
+    <div
+      className="relative flex justify-center items-center bg-cover bg-center h-screen"
+      style={{
+        backgroundImage: `url(/fondliege.svg)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Conteneur pour la page par-dessus */}
+      <div
+        className="relative"
+        style={{
+          flex: 1,
+          maxWidth: '90%',
+          maxHeight: '90%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Image par-dessus */}
+        <div style={{ position: 'relative', width: '150%', height: '100%' }}>
+          <img
+            src="/fondpapier.svg"
+            alt="Image par dessus"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+          {/* SVG "pointilesbouton.svg" par-dessus l'image */}
+          <img
+            src="/pointilesbouton.svg"
+            alt="Pointiles Bouton"
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+          />
+        </div>
+        {/* Texte "Bienvenue sur" avec la police Anastasia */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999 }}>
+          <h1 style={{ fontFamily: 'Anastasia', color: 'black', fontSize: '77px', textAlign: 'center' }}>Bienvenue sur</h1>
+
         </div>
       </div>
 
-
-
-   
- : (
-       <></>
-
-
-
-
-      )
-      
-    </>
-
+      {/* SVG du globe */}
+      <div
+        className="absolute right-0"
+        style={{
+          right: '-40%', // Ajustement pour une position plus à droite sur de plus petits écrans
+          top: '50%', // Centrage vertical
+          transform: 'translateY(-45%)', // Centrage vertical
+          width: '90%', // Ajustement de la largeur pour la rendre responsive
+        }}
+      >
+        <img src="/globe.svg" alt="Globe" style={{ width: '100%' }} />
+      </div>
+     
+      {/* Contenu de votre application */}
+    </div>
   );
-}
+};
+
+export default App;
