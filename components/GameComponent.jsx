@@ -56,6 +56,8 @@ const GameComponent = () => {
   const mapRef = useRef(null);
   const [guessB, isGuessB] = useState(false);
   const [initialStreetViewLocation, setInitialStreetViewLocation] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
 
 
   const mapContainerRef = useRef(null);
@@ -377,6 +379,11 @@ const GameComponent = () => {
     streetViewPanorama.current.setVisible(true);
   }
 
+  const tooltipClasses = showTooltip
+  ? "opacity-100 scale-100" // Tooltip visible
+  : "opacity-0 scale-0"; // Tooltip hidden
+
+
   return (
     <div class="flex flex-auto relative h-screen">
       <>
@@ -521,11 +528,12 @@ const GameComponent = () => {
           </button>
 
         </div>
-        <div class="absolute bottom-28 right-2 z-10 flex items-center group">
-          <div class="relative bg-black bg-opacity-50 mr-2 rounded-full text-white text-xs font-bold px-2 py-1 invisible scale-0 group-hover:visible transform scale-0 group-hover:scale-100 transition-transform duration-300">
+        <div class="absolute bottom-28 right-2 z-10 flex items-center">
+          <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${tooltipClasses}`}>
             Revenir au point de départ
           </div>
-          <button onClick={displayPano} title="Revenir au point de départ" class="relative rounded-full bg-black bg-opacity-50 hover:bg-opacity-100 h-10 w-10 flex items-center justify-center">
+          <button onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)} onClick={displayPano} title="Revenir au point de départ" class="relative rounded-full bg-black bg-opacity-50 hover:bg-opacity-100 h-10 w-10 flex items-center justify-center">
             <Image src={back}
               alt="return"
               width={30}
@@ -533,7 +541,6 @@ const GameComponent = () => {
             />
           </button>
         </div>
-
       </>
 
 
