@@ -9,6 +9,8 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import Image from "next/image";
 import { fetchGeoJsonData } from '@/utils/geoJsonUtils';
 import Timer from './Timer'; // Adjust the import path as necessary
+import GameInfoBar from './GameInfoBar';
+
 
 
 // Importation des images depuis le dossier public.
@@ -402,34 +404,19 @@ const GameComponent = () => {
 
   return (
     <div class="flex flex-auto relative h-screen">
-      <>
-        <div class={`flex justify-between items-center p-1.5 absolute left-0 right-0 z-10 ${showResult ? 'hidden' : ''}`}>
-          <div class="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
-            <div class="text-white">
-              <div class="text-xs uppercase text-stone-800 font-bold">Carte</div>
-              <div class="text-lg font-bold">World</div>
-            </div>
-            <div class="text-white">
-              <div class="text-xs uppercase text-stone-800 font-bold">Round</div>
-              <div class="text-lg font-bold">{round.current}/5</div>
-            </div>
-            <div class="text-white">
-              <div class="text-xs uppercase text-stone-800 font-bold">Score</div>
-              <div class="text-lg font-bold">{totalScore.current}</div>
-            </div>
-          </div>
-          <Timer timeLeft={timeLeft} resetTimer={setTimeLeft} onComplete={handleTimerComplete} />
+<div className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
 
-          <Image
-            className="h-20 w-auto mr-4"
-            src={logo}
-            alt="logo"
-          />
-        </div>
+      <GameInfoBar
+        round={round.current}
+        totalScore={totalScore.current}
+        timeLeft={timeLeft}
+        setTimeLeft={setTimeLeft}
+        handleTimerComplete={handleTimerComplete}
+      />
         {<div ref={streetViewElementRef}
-          className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
+          className="w-full h-full relative">
         </div>}
-        <div className={`absolute bottom-5 left-5 z-10 ${showResult ? 'hidden' : ''} ${isHovered ? 'opacity-100' : 'opacity-50'}`}
+        <div className={`absolute bottom-5 left-5 z-10 ${isHovered ? 'opacity-100' : 'opacity-50'}`}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}>
           <div id="mapButtons"
@@ -530,7 +517,6 @@ const GameComponent = () => {
             minWidth: '250px',
           }}>
             <div ref={mapContainerRef} className=' relative h-full w-full'></div>
-
           </div>
           <button id="guessButton"
             onClick={handleGuess}
@@ -544,7 +530,7 @@ const GameComponent = () => {
           </button>
 
         </div>
-        <div class={`absolute bottom-28 right-2 z-10 flex items-center ${showResult ? 'hidden' : ''}`}>
+        <div class="absolute bottom-28 right-2 z-10 flex items-center">
           <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${tooltipClasses}`}>
             Revenir au point de départ
           </div>
@@ -557,7 +543,7 @@ const GameComponent = () => {
             />
           </button>
         </div>
-      </>
+      </div>
 
 
       {showResult &&

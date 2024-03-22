@@ -12,7 +12,7 @@ const Timer = ({ timeLeft, resetTimer, onComplete }) => {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [timeLeft, resetTimer]);
+  }, [timeLeft, resetTimer, onComplete]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
