@@ -69,7 +69,7 @@ const GameComponent = () => {
   const maxWidth = window.innerWidth * 0.8;
   const maxHeight = window.innerHeight * 0.8;
 
-  const initialTime = 300; // 5 minutes in seconds
+  const initialTime = 10; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
 
 
@@ -78,10 +78,16 @@ const GameComponent = () => {
   };
 
   const handleTimerComplete = () => {
-    console.log('Timer completed!');
-    resetTimer();
-    // Execute any actions here, like ending the game round, updating state, etc.
-    // Example: endRound();
+    if (!showResult) {
+      console.log('Timer completed!');
+      moveMapAndResize();
+      addResultMarker();
+      setTimeout(() => {
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(initialStreetViewLocation);
+        mapRef.current.fitBounds(bounds);
+      }, 100);
+    } 
   };
 
 
@@ -281,6 +287,8 @@ const GameComponent = () => {
     totalScore.current += score.current;
     distanceG.current = Math.round(distance2);
 
+    addResultMarker();
+
     const lineSymbol = {
       path: "M 0,-1 0,1",
       strokeOpacity: 1,
@@ -303,6 +311,16 @@ const GameComponent = () => {
       map: mapRef.current,
     });
 
+    
+    setTimeout(() => {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(user_position);
+      bounds.extend(map_position);
+      mapRef.current.fitBounds(bounds);
+    }, 100);
+  }
+
+  const addResultMarker = () => {
     // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
       // Créer un marqueur pour la position de l'utilisateur
@@ -318,31 +336,29 @@ const GameComponent = () => {
 
       // Creating an instance of AdvancedMarkerElement
       window.marker2 = new AdvancedMarkerElement({
-        position: map_position,
+        position: initialStreetViewLocation,
         map: mapRef.current,
         content: markerDiv, // Optional
       });
     });
-    setTimeout(() => {
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend(user_position);
-      bounds.extend(map_position);
-      mapRef.current.fitBounds(bounds);
-    }, 100);
-  }
 
+  }
 
   const nextRound = () => {
     moveMapAndResize();
     showRandomStreetView(globalGeoJsonData.features);
     console.log('Next round');
-    window.marker.setMap(null);
+    if (window.marker) {
+      window.marker.setMap(null);
+      window.line.setMap(null);
+    }
     window.marker2.setMap(null);
-    window.line.setMap(null);
+    
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
     round.current++;
     isGuessB(false);
+    resetTimer();
   }
 
   const initializeMarker = () => {
@@ -513,7 +529,7 @@ const GameComponent = () => {
             minHeight: '150px',
             minWidth: '250px',
           }}>
-            <div ref={mapContainerRef} className=' relative h-full w-full '></div>
+            <div ref={mapContainerRef} className=' relative h-full w-full'></div>
 
           </div>
           <button id="guessButton"
@@ -528,7 +544,7 @@ const GameComponent = () => {
           </button>
 
         </div>
-        <div class="absolute bottom-28 right-2 z-10 flex items-center">
+        <div class={`absolute bottom-28 right-2 z-10 flex items-center ${showResult ? 'hidden' : ''}`}>
           <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${tooltipClasses}`}>
             Revenir au point de départ
           </div>

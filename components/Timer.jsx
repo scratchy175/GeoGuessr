@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 const Timer = ({ timeLeft, resetTimer, onComplete }) => {
   useEffect(() => {
     if (timeLeft === 0) {
-      onComplete(); // Call the onComplete function when timeLeft is 0
+      onComplete();
       return;
     }
 
@@ -12,7 +12,7 @@ const Timer = ({ timeLeft, resetTimer, onComplete }) => {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [timeLeft, resetTimer, onComplete]);
+  }, [timeLeft, resetTimer]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;

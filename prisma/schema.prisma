@@ -22,3 +22,13 @@ model Score {
   classement         Int                
 }
 
+model Rounds {
+  id        Int      @id @default(autoincrement())
+  game_id   String
+  round_num Int
+  score    Int
+  distance Int
+  time    Int
+  user_p
+}
+
