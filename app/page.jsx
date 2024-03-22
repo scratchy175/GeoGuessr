@@ -1,5 +1,5 @@
 "use client"
-import './Anastasia.css';
+import './Fonts.css';
 import React from 'react';
 const App = () => {
   return (
@@ -35,17 +35,6 @@ const App = () => {
               objectFit: 'cover',
             }}
           />
-          {/* SVG "pointilesbouton.svg" par-dessus l'image */}
-          <img
-            src="/pointilesbouton.svg"
-            alt="Pointiles Bouton"
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-          />
-        </div>
-        {/* Texte "Bienvenue sur" avec la police Anastasia */}
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999 }}>
-          <h1 style={{ fontFamily: 'Anastasia', color: 'black', fontSize: '77px', textAlign: 'center' }}>Bienvenue sur</h1>
-
         </div>
       </div>
 
@@ -53,7 +42,7 @@ const App = () => {
       <div
         className="absolute right-0"
         style={{
-          right: '-40%', // Ajustement pour une position plus à droite sur de plus petits écrans
+          right: '-41%', // Ajustement pour une position plus à droite sur de plus petits écrans
           top: '50%', // Centrage vertical
           transform: 'translateY(-45%)', // Centrage vertical
           width: '90%', // Ajustement de la largeur pour la rendre responsive

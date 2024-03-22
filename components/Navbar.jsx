@@ -31,7 +31,9 @@ function Nav() {
   }, []);
 
   return (
-    <div> </div>
+    <nav className="bg-transparent">
+
+    </nav>
   );
 }
 
