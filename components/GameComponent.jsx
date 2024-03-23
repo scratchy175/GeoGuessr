@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import distance from '@turf/distance';
 import Image from "next/image";
-import { fetchGeoJsonData, generateRandomPointInFeature} from '@/utils/geoJsonUtils';
+import { fetchGeoJsonData, generateRandomPointInFeature } from '@/utils/geoJsonUtils';
 import GameInfoBar from './GameInfoBar';
 import MapControls from './MapContainer';
 
@@ -45,7 +45,7 @@ const GameComponent = ({ params }) => {
 
 
 
-  const initialTime = 10; // 300 = 5 minutes in seconds
+  const initialTime = 100; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
 
 
@@ -56,14 +56,8 @@ const GameComponent = ({ params }) => {
   const handleTimerComplete = () => {
     if (!showResult) {
       console.log('Timer completed!');
-      moveMapAndResize();
-      addResultMarker();
-      setTimeout(() => {
-        const bounds = new google.maps.LatLngBounds();
-        bounds.extend(initialStreetViewLocation);
-        mapRef.current.fitBounds(bounds);
-      }, 100);
-    } 
+      handleGuess();
+    }
   };
 
 
@@ -161,57 +155,53 @@ const GameComponent = ({ params }) => {
   }, [showRandomStreetView]);
 
 
-  
+
 
   // Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = () => {
+    const bounds = new google.maps.LatLngBounds();
     moveMapAndResize();
-    const user_position = {
-      lat: window.marker.position.lat,
-      lng: window.marker.position.lng
-    };
-    const map_position = initialStreetViewLocation;
-    //const distanceG = google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(user_position), new google.maps.LatLng(map_position));
-    //console.log(distanceG / 1000);
-
-    const from = [user_position.lng, user_position.lat];
-    const to = [map_position.lng, map_position.lat];
-    const options = { units: 'kilometers' };
-    const distance2 = distance(from, to, options);
-    console.log(distance2);
-    score.current = Math.round(5000 * Math.exp(-10 * distance2 / 2000));
-    totalScore.current += score.current;
-    distanceG.current = Math.round(distance2);
-
     addResultMarker();
+    if (window.marker) {
+      const user_position = {
+        lat: window.marker.position.lat,
+        lng: window.marker.position.lng
+      };
+      const from = [user_position.lng, user_position.lat];
+      const to = [initialStreetViewLocation.lng, initialStreetViewLocation.lat];
+      const options = { units: 'kilometers' };
+      const distance2 = distance(from, to, options);
+      console.log(distance2);
+      score.current = Math.round(5000 * Math.exp(-10 * distance2 / 2000));
+      totalScore.current += score.current;
+      distanceG.current = Math.round(distance2);
 
-    const lineSymbol = {
-      path: "M 0,-1 0,1",
-      strokeOpacity: 1,
-      scale: 4,
-    };
+      const lineSymbol = {
+        path: "M 0,-1 0,1",
+        strokeOpacity: 1,
+        scale: 4,
+      };
 
-    window.line = new google.maps.Polyline({
-      path: [user_position, map_position],
-      geodesic: false,
-      strokeColor: '#000000',
-      strokeOpacity: 0,
-      icons: [
-        {
-          icon: lineSymbol,
-          offset: "0",
-          repeat: "20px",
-        },
-      ],
-      strokeWeight: 1,
-      map: mapRef.current,
-    });
-
-    
-    setTimeout(() => {
-      const bounds = new google.maps.LatLngBounds();
+      window.line = new google.maps.Polyline({
+        path: [user_position, initialStreetViewLocation],
+        geodesic: false,
+        strokeColor: '#000000',
+        strokeOpacity: 0,
+        icons: [
+          {
+            icon: lineSymbol,
+            offset: "0",
+            repeat: "20px",
+          },
+        ],
+        strokeWeight: 1,
+        map: mapRef.current,
+      });
       bounds.extend(user_position);
-      bounds.extend(map_position);
+
+    }
+    bounds.extend(initialStreetViewLocation);
+    setTimeout(() => {
       mapRef.current.fitBounds(bounds);
     }, 100);
   }
@@ -246,10 +236,11 @@ const GameComponent = ({ params }) => {
     console.log('Next round');
     if (window.marker) {
       window.marker.setMap(null);
+      window.marker = null;
       window.line.setMap(null);
     }
     window.marker2.setMap(null);
-    
+
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
     round.current++;
@@ -291,39 +282,36 @@ const GameComponent = ({ params }) => {
     streetViewPanorama.current.setVisible(true);
   }
 
-  const tooltipClasses = showTooltip
-  ? "opacity-100 scale-100" // Tooltip visible
-  : "opacity-0 scale-0"; // Tooltip hidden
-
-
   return (
     <div class="flex flex-auto relative h-screen">
-<div className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
+      <div className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
 
-      <GameInfoBar
-        round={round.current}
-        totalScore={totalScore.current}
-        timeLeft={timeLeft}
-        setTimeLeft={setTimeLeft}
-        handleTimerComplete={handleTimerComplete}
-      />
+        <GameInfoBar
+          round={round.current}
+          totalScore={totalScore.current}
+          timeLeft={timeLeft}
+          setTimeLeft={setTimeLeft}
+          handleTimerComplete={handleTimerComplete}
+        />
         {<div ref={streetViewElementRef}
           className="w-full h-full relative">
         </div>}
-        
-          <MapControls
-            mapRef={mapRef}
-            mapContainerRef={mapContainerRef}
-            handleGuess={handleGuess}
-            guessB={guessB}
-          />
+
+        <MapControls
+          mapRef={mapRef}
+          mapContainerRef={mapContainerRef}
+          handleGuess={handleGuess}
+          guessB={guessB}
+        />
 
         <div class="absolute bottom-28 right-2 z-10 flex items-center">
-          <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${tooltipClasses}`}>
+          <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${showTooltip
+    ? "opacity-100 scale-100" // Tooltip visible
+    : "opacity-0 scale-0"}`}>
             Revenir au point de départ
           </div>
           <button onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)} onClick={displayPano} title="Revenir au point de départ" class="relative rounded-full bg-black bg-opacity-50 hover:bg-opacity-100 h-10 w-10 flex items-center justify-center">
+            onMouseLeave={() => setShowTooltip(false)} onClick={displayPano} title="Revenir au point de départ" class="relative rounded-full bg-black bg-opacity-50 hover:bg-opacity-100 h-10 w-10 flex items-center justify-center">
             <Image src={back}
               alt="return"
               width={30}
@@ -332,7 +320,6 @@ const GameComponent = ({ params }) => {
           </button>
         </div>
       </div>
-
 
       {showResult &&
         <div class="result-container w-full h-full">
