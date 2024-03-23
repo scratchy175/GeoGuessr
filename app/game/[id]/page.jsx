@@ -9,7 +9,7 @@ export default function GamePage({ params }) {
         <>
             <div>
                 <RootLayout hideNavbar={true}></RootLayout>
-                <GameComponent />
+                <GameComponent params={params} />
             </div>
         </>
     );

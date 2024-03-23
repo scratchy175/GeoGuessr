@@ -10,8 +10,13 @@ import Navbar from "@/components/Navbar";
 import footer from "@/components/footer";
 
 // Function to generate a random ID (simple example)
-function generateRandomID() {
-  return Math.random().toString(36).substring(2, 9);
+function generateRandomID(length = 16) {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
 }
 
 
