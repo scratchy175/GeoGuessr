@@ -6,7 +6,7 @@ import distance from '@turf/distance';
 import Image from "next/image";
 import { fetchGeoJsonData, generateRandomPointInFeature } from '@/utils/geoJsonUtils';
 import GameInfoBar from './GameInfoBar';
-import MapControls from './MapContainer';
+import MapContainer from './MapContainer';
 
 
 
@@ -42,6 +42,8 @@ const GameComponent = ({ params }) => {
 
   const mapContainerRef = useRef(null);
   const [currentParentId, setCurrentParentId] = useState('inGame');
+  const showResultRef = useRef(showResult);
+
 
 
 
@@ -60,7 +62,20 @@ const GameComponent = ({ params }) => {
     }
   };
 
+  useEffect(() => {
+    showResultRef.current = showResult;
+  }, [showResult]);
+  
 
+  useEffect(() => {
+    if (mapRef.current) {
+      // Change the cursor style based on whether showResult is true or false.
+      mapRef.current.setOptions({
+        draggableCursor: showResult ? 'default' : 'crosshair',
+      });
+    }
+  }, [showResult]);
+  
   useEffect(() => {
     // Initialisation de la carte et chargement des données GeoJSON.
     const initMap = async () => {
@@ -152,7 +167,7 @@ const GameComponent = ({ params }) => {
       const newFeatures = features.filter((_, index) => index !== randomFeatureIndex);
       showRandomStreetView(newFeatures, 0);
     }
-  }, [showRandomStreetView]);
+  }, []);
 
 
 
@@ -172,7 +187,7 @@ const GameComponent = ({ params }) => {
       const options = { units: 'kilometers' };
       const distance2 = distance(from, to, options);
       console.log(distance2);
-      score.current = Math.round(5000 * Math.exp(-10 * distance2 / 2000));
+      score.current = Math.round(5000 * Math.exp(-10 * distance2 / 4000));
       totalScore.current += score.current;
       distanceG.current = Math.round(distance2);
 
@@ -251,28 +266,30 @@ const GameComponent = ({ params }) => {
   const initializeMarker = () => {
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
       mapRef.current.addListener('click', (e) => {
-        if (window.marker) {
-          window.marker.setMap(null);
+        if (!showResultRef.current) {
+          if (window.marker) {
+            window.marker.setMap(null);
+          }
+
+          const markerDiv = document.createElement('img');
+          markerDiv.src = '/Marker5.webp';
+          markerDiv.style.className = 'custom-marker';
+          markerDiv.style.width = '50';
+          markerDiv.style.height = '50px';
+          markerDiv.style.transform = 'translate(0, +20%)';
+
+
+          window.marker = new AdvancedMarkerElement({
+            position: {
+              lat: e.latLng.lat(),
+              lng: e.latLng.lng(),
+            },
+            map: mapRef.current,
+            content: markerDiv,
+
+          });
+          isGuessB(true);
         }
-
-        const markerDiv = document.createElement('img');
-        markerDiv.src = '/Marker5.webp';
-        markerDiv.style.className = 'custom-marker';
-        markerDiv.style.width = '50';
-        markerDiv.style.height = '50px';
-        markerDiv.style.transform = 'translate(0, +20%)';
-
-
-        window.marker = new AdvancedMarkerElement({
-          position: {
-            lat: e.latLng.lat(),
-            lng: e.latLng.lng(),
-          },
-          map: mapRef.current,
-          content: markerDiv,
-
-        });
-        isGuessB(true);
       });
     });
   }
@@ -297,7 +314,7 @@ const GameComponent = ({ params }) => {
           className="w-full h-full relative">
         </div>}
 
-        <MapControls
+        <MapContainer
           mapRef={mapRef}
           mapContainerRef={mapContainerRef}
           handleGuess={handleGuess}
@@ -306,8 +323,8 @@ const GameComponent = ({ params }) => {
 
         <div class="absolute bottom-28 right-2 z-10 flex items-center">
           <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${showTooltip
-    ? "opacity-100 scale-100" // Tooltip visible
-    : "opacity-0 scale-0"}`}>
+            ? "opacity-100 scale-100" // Tooltip visible
+            : "opacity-0 scale-0"}`}>
             Revenir au point de départ
           </div>
           <button onMouseEnter={() => setShowTooltip(true)}
