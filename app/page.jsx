@@ -8,6 +8,7 @@ import { signOut, getSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import Navbar from "@/components/Navbar";
 import footer from "@/components/footer";
+import { addGame } from "@/services/addGame";
 
 // Function to generate a random ID (simple example)
 function generateRandomID(length = 16) {
@@ -50,9 +51,24 @@ export default function Home() {
 
   const router = useRouter();
 
-  const handlePlayClick = () => {
+  const handlePlayClick = async () => {
     const randomID = generateRandomID();
-    router.push(`/game/${randomID}`);
+    const mapType = "World"; // Placeholder value
+    const state = "active"; // Placeholder value
+    const user_id = 1;
+  
+    if (session) {
+      try {
+        const gameData = await addGame(session.user.id, randomID, mapType, state);
+        console.log("Game added successfully!", gameData);
+        router.push(`/game/${randomID}`);
+      } catch (error) {
+        console.error("Failed to add game:", error);
+      }
+    } else {
+      console.log("No session found, redirecting to login.");
+      // Handle the case where there is no user session
+    }
   };
   return (
     <>

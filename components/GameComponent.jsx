@@ -45,7 +45,7 @@ const GameComponent = ({ params }) => {
   const showResultRef = useRef(showResult);
 
 
-
+const [waitingScreen, setWaitingScreen] = useState(true);
 
   const initialTime = 100; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
@@ -159,6 +159,7 @@ const GameComponent = ({ params }) => {
       setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });
       streetViewPanorama.current.setPano(data.location.pano);
       streetViewPanorama.current.setVisible(true);
+      setWaitingScreen(false);
 
       console.log('Street View data:', data);
     } else if (attempt < 3) {
@@ -303,8 +304,20 @@ const GameComponent = ({ params }) => {
   }
 
   return (
+    
+
+
     <div class="flex flex-auto relative h-screen">
-      <div className={`w-full h-full relative ${showResult ? 'hidden' : ''}`}>
+
+
+      {waitingScreen &&
+            <div class="flex bg-black flex-col items-center justify-center">
+              <div class="text-2xl font-bold text-white">Chargement...</div>
+              
+            </div>
+
+        }
+      <div className={`w-full h-full relative ${showResult || waitingScreen ? 'hidden' : ''}`}>
 
         <GameInfoBar
           round={round.current}
@@ -361,7 +374,7 @@ const GameComponent = ({ params }) => {
     </div>
     <button onClick={nextRound}
       class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-      Next Round
+      {round.current < 5 ? "Suivant" : "Voir les résultats"}
     </button>
     <div class="relative text-white text-center mx-2">
       <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{score.current}</div>
