@@ -200,6 +200,9 @@ const GameComponent = ({ params }) => {
       bounds.extend(user_position);
 
     }
+    else {
+      distanceG.current = "Temps écoulé";
+    }
     bounds.extend(initialStreetViewLocation);
     setTimeout(() => {
       mapRef.current.fitBounds(bounds);
@@ -333,22 +336,23 @@ const GameComponent = ({ params }) => {
 
             </div>
           </div>
-          <div class="bottom-part h-1/6">
-            <div class="flex justify-center items-center relative bg-purple-950 space-x-80 h-full">
-              <div class="text-white">
-                <div class=" uppercase uppercase font-bold">{distanceG.current} km</div>
-                <div class="text-lg font-bold text-xs">Depuis la localisation</div>
-              </div>
-              <button onClick={nextRound}
-                className="bg-green-500 py-2 px-4 rounded-full text-lg text-white shadown-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75">
-                Next Round
-              </button>
-              <div class="text-white">
-                <div class=" uppercase font-bold">{score.current}</div>
-                <div class="text-lg font-bold text-xs">sur 5 000 points</div>
-              </div>
-            </div>
-          </div>
+          <div class="relative bottom-part h-1/6">
+  <div class="flex justify-center items-center relative bg-purple-950 space-x-2 sm:space-x-8 md:space-x-20 lg:space-x-80 h-full flex-wrap">
+    <div class="relative text-white text-center mx-2">
+      <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{distanceG.current} km</div>
+      <div class="text-xs sm:text-sm md:text-base">Depuis la localisation</div>
+    </div>
+    <button onClick={nextRound}
+      class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
+      Next Round
+    </button>
+    <div class="relative text-white text-center mx-2">
+      <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{score.current}</div>
+      <div class="text-xs sm:text-sm md:text-base">sur 5 000 points</div>
+    </div>
+  </div>
+</div>
+
         </div>}
     </div>
   );
