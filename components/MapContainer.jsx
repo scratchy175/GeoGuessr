@@ -100,10 +100,8 @@ const MapControls = ({ mapRef, mapContainerRef, handleGuess, guessB }) => {
             hoverTimeoutRef.current = null;
         }, 1000); // Attendre 1 seconde avant de masquer les boutons
     };
-
-
     return (
-        <div className={`absolute bottom-5 left-5 z-10 ${isHovered ? 'opacity-100' : 'opacity-50'}`}
+        <div className={`absolute bottom-5 left-5 z-10 `}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}>
             <div id="mapButtons"
@@ -162,7 +160,13 @@ const MapControls = ({ mapRef, mapContainerRef, handleGuess, guessB }) => {
                 </button>
             </div>
 
-            <div class="relative z-20">
+            <div class="relative z-20"
+            style={
+                {
+                    opacity: isHovered ? 1 : 0.5,
+                }
+
+            }>
                 <button onClick={ZoomIn} 
                     style={{
                         transition: 'all 0.3s ease',
@@ -202,8 +206,11 @@ const MapControls = ({ mapRef, mapContainerRef, handleGuess, guessB }) => {
                 transition: 'all 0.3s ease',
                 minHeight: '150px',
                 minWidth: '250px',
+                opacity: isHovered ? 1 : 0.5,
+
             }}>
-                <div ref={mapContainerRef} className=' relative h-full w-full'></div>
+                <div ref={mapContainerRef} className=' relative h-full w-full '
+                ></div>
             </div>
             <button id="guessButton"
                 onClick={handleGuess}
@@ -211,6 +218,7 @@ const MapControls = ({ mapRef, mapContainerRef, handleGuess, guessB }) => {
                 style={{
                     width: isHovered ? mapSize.width : '250px',
                     transition: 'all 0.3s ease',
+                    opacity: !guessB ? 0.5 : (isHovered ? 1 : 0.5),
                 }}
                 className="h-10 w-full py-2 mt-2 text-lg cursor-pointer rounded-full text-white font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75 disabled:bg-black disabled:hover:scale-100 disabled:opacity-50">
                 Guess
