@@ -1,10 +1,10 @@
 // services/gameService.js
 import axios from 'axios';
 
-export const addGame = async (userId, game_id, map_type, state) => {
+export const addGame = async (user_id, game_id, map_type, state) => {
   try {
     const response = await axios.post('/api/game', {
-      userId,
+      user_id,
       game_id,
       map_type,
       state,
