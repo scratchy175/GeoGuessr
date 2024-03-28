@@ -1,7 +1,18 @@
 "use client"
 import './Fonts.css';
-import React from 'react';
+import React, { useEffect } from 'react';
+
 const App = () => {
+  useEffect(() => {
+    // Empêcher le défilement lorsque l'application est en plein écran
+    document.documentElement.style.overflow = 'hidden';
+
+    // Remettre le défilement lorsque le composant est démonté
+    return () => {
+      document.documentElement.style.overflow = 'auto';
+    };
+  }, []);
+
   return (
     <div
       className="relative flex justify-center items-center bg-cover bg-center h-screen"

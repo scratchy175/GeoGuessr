@@ -3,31 +3,23 @@ import React from 'react';
 
 const App = () => {
   return (
-    <div className="relative w-screen min-h-screen overflow-hidden flex justify-center items-center">
+    <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
+      {/* Fond */}
       <img
         src="/fondliege.svg"
         alt="Fond Liege"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          minWidth: '100%',
-          minHeight: '100%',
-          maxWidth: '100%',
-          maxHeight: '100%',
-        }}
       />
-        {/* Image par-dessus */}
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-          <img
-            src="/commentjouer.svg"
-            alt="Image par dessus"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        </div>
+
+      {/* Image par-dessus */}
+      <div className="absolute inset-0 flex justify-center items-center">
+        <img
+          src="/commentjouer.svg"
+          alt="Image par dessus"
+          className="w-full h-full object-contain"
+        />
       </div>
+    </div>
   );
 }
 
