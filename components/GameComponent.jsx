@@ -7,11 +7,14 @@ import Image from "next/image";
 import { fetchGeoJsonData, generateRandomPointInFeature } from '@/utils/geoJsonUtils';
 import GameInfoBar from './GameInfoBar';
 import MapContainer from './MapContainer';
-
+import { addRound } from '@/services/addRound';
+import { useRouter } from 'next/navigation';
+import './style.css';
 
 
 // Importation des images depuis le dossier public.
 import back from "@/public/retour.svg";
+import map from "@/public/Globe_Light.svg";
 
 // Fonction asynchrone pour charger une bibliothèque Google Maps avancée pour les marqueurs.
 async function loadAdvancedMarkerLibrary() {
@@ -28,7 +31,6 @@ const GameComponent = ({ params }) => {
   const streetViewPanorama = useRef(null);
 
 
-  const [showResult, setShowResult] = useState(false);
   const round = useRef(1);
   const totalScore = useRef(0);
   const distanceG = useRef(0);
@@ -41,11 +43,15 @@ const GameComponent = ({ params }) => {
 
 
   const mapContainerRef = useRef(null);
-  const [currentParentId, setCurrentParentId] = useState('inGame');
+
+  const [showResult, setShowResult] = useState(false);
   const showResultRef = useRef(showResult);
+  const [waitingScreen, setWaitingScreen] = useState(true);
+  const [currentParentId, setCurrentParentId] = useState('inGame');
 
 
-const [waitingScreen, setWaitingScreen] = useState(true);
+
+  const [endGame, setEndGame] = useState(false);
 
   const initialTime = 100; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
@@ -65,7 +71,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
   useEffect(() => {
     showResultRef.current = showResult;
   }, [showResult]);
-  
+
 
   useEffect(() => {
     if (mapRef.current) {
@@ -75,7 +81,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
       });
     }
   }, [showResult]);
-  
+
   useEffect(() => {
     // Initialisation de la carte et chargement des données GeoJSON.
     const initMap = async () => {
@@ -101,6 +107,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
           pov: { heading: 0, pitch: 0 },
           disableDefaultUI: true,
           zoomControl: true,
+          showRoadLabels: false,
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
@@ -116,7 +123,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
     initMap();
   }, []);
 
-  const moveMapAndResize = () => {
+  const moveMapAndResize = useCallback(() => {
 
     setShowResult(!showResult)
 
@@ -131,7 +138,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
         google.maps.event.trigger(mapRef, 'resize');
       }
     }, 100);
-  };
+  }, [currentParentId, showResult]);
 
   // Fonction pour afficher une vue Street View aléatoire.
   const showRandomStreetView = useCallback((features, attempt = 0) => {
@@ -156,10 +163,16 @@ const [waitingScreen, setWaitingScreen] = useState(true);
   // Fonction pour traiter les données Street View.
   const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
     if (status === 'OK') {
-      setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });
-      streetViewPanorama.current.setPano(data.location.pano);
-      streetViewPanorama.current.setVisible(true);
+      setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });      
+      setTimeout(() => {
+
+        streetViewPanorama.current.setPano(data.location.pano);
+        streetViewPanorama.current.setVisible(true);
+        
+      }, 1);
       setWaitingScreen(false);
+
+      
 
       console.log('Street View data:', data);
     } else if (attempt < 3) {
@@ -174,7 +187,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
 
 
   // Fonction pour gérer le clic sur le bouton "Guess".
-  const handleGuess = () => {
+  const handleGuess = useCallback(() => {
     const bounds = new google.maps.LatLngBounds();
     moveMapAndResize();
     addResultMarker();
@@ -223,7 +236,10 @@ const [waitingScreen, setWaitingScreen] = useState(true);
     setTimeout(() => {
       mapRef.current.fitBounds(bounds);
     }, 100);
-  }
+    const mapPointString = `Lat: ${initialStreetViewLocation.lat}, Lng: ${initialStreetViewLocation.lng}`;
+    const userPointString = `Lat: ${window.marker?.position.lat}, Lng: ${window.marker?.position.lng}`;
+    //addRound(params.game_id, round.current, score.current, distanceG.current, initialTime - timeLeft, userPointString, mapPointString);
+  }, [initialStreetViewLocation, moveMapAndResize]);
 
   const addResultMarker = () => {
     // Charger la bibliothèque des marqueurs avancés
@@ -249,8 +265,15 @@ const [waitingScreen, setWaitingScreen] = useState(true);
 
   }
 
-  const nextRound = () => {
+  const nextRound = useCallback(() => {
+    if (round.current === 5) {
+      setEndGame(true);
+      handleEndGame();
+      return;
+    }
     moveMapAndResize();
+    //streetViewPanorama.current.setVisible(false);
+    setWaitingScreen(true);
     showRandomStreetView(globalGeoJsonData.features);
     console.log('Next round');
     if (window.marker) {
@@ -265,7 +288,7 @@ const [waitingScreen, setWaitingScreen] = useState(true);
     round.current++;
     isGuessB(false);
     resetTimer();
-  }
+  }, [globalGeoJsonData, moveMapAndResize, showRandomStreetView]);
 
   const initializeMarker = () => {
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
@@ -303,20 +326,75 @@ const [waitingScreen, setWaitingScreen] = useState(true);
     streetViewPanorama.current.setVisible(true);
   }
 
+  const router = useRouter();
+
+
+  const quit = () => {
+    router.push('/');
+  }
+
+  const replay = () => {
+    router.push('/game/random_id');
+
+
+    //more stuff here
+    window.location.reload();
+  }
+
+  const showDetails = () => {
+    console.log('Show details');
+  }
+
+  // Add key press event listener
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.keyCode === 32) { // Check if the pressed key is space
+        event.preventDefault(); // Prevent the default action of the space key (scrolling)
+        if (!showResult && guessB) { // Check if the game is in a state where guessing is allowed
+          handleGuess();
+
+        } else if (showResult) { // Check if the game is in a state to proceed to the next round
+          nextRound();
+
+
+        }
+      }
+    };
+
+    // Add event listener when the component mounts
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [showResult, guessB, handleGuess, nextRound]); // Dependencies: re-attach the listener when these values change
+
+
+  const handleEndGame = () => {
+    console.log('End game');
+  }
+
   return (
-    
+
 
 
     <div class="flex flex-auto relative h-screen">
 
 
       {waitingScreen &&
-            <div class="flex bg-black flex-col items-center justify-center">
-              <div class="text-2xl font-bold text-white">Chargement...</div>
-              
-            </div>
-
-        }
+        <div id="waitingScreen" className="waiting-screen flex flex-col justify-center items-center">
+        <div className="loader-container">
+          <div className="map-container flex justify-center items-center">
+            <Image src={map} alt="map" width={100} height={100} />
+          </div>
+          <div className="loader"></div>
+          
+        </div>
+        <div className="text relative b-5 text-white">Chargement de la carte...</div>
+      </div>
+      
+      }
       <div className={`w-full h-full relative ${showResult || waitingScreen ? 'hidden' : ''}`}>
 
         <GameInfoBar
@@ -367,25 +445,48 @@ const [waitingScreen, setWaitingScreen] = useState(true);
             </div>
           </div>
           <div class="relative bottom-part h-1/6">
-  <div class="flex justify-center items-center relative bg-purple-950 space-x-2 sm:space-x-8 md:space-x-20 lg:space-x-80 h-full flex-wrap">
-    <div class="relative text-white text-center mx-2">
-      <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{distanceG.current} km</div>
-      <div class="text-xs sm:text-sm md:text-base">Depuis la localisation</div>
-    </div>
-    <button onClick={nextRound}
-      class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-      {round.current < 5 ? "Suivant" : "Voir les résultats"}
-    </button>
-    <div class="relative text-white text-center mx-2">
-      <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{score.current}</div>
-      <div class="text-xs sm:text-sm md:text-base">sur 5 000 points</div>
-    </div>
-  </div>
-</div>
+            <div className={`relative bottom-part h-1/6 bg-purple-950 flex justify-center items-center space-x-2 sm:space-x-8 md:space-x-20 lg:space-x-80 h-full flex-wrap`}>
+              {endGame ? (
+                <>
+                  <button onClick={showDetails}
+                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
+                    Voir le détail
+                  </button>
+                  <button onClick={replay}
+                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
+                    Rejouer
+                  </button>
+                  <button onClick={quit}
+                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
+                    Quitter
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div class="relative text-white text-center mx-2">
+                    <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{distanceG.current} km</div>
+                    <div class="text-xs sm:text-sm md:text-base">Depuis la localisation</div>
+                  </div>
+                  <button onClick={nextRound}
+                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
+                    {round.current < 5 ? "Suivant" : "Voir les résultats"}
+                  </button>
+                  <div class="relative text-white text-center mx-2">
+                    <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{score.current}</div>
+                    <div class="text-xs sm:text-sm md:text-base">sur 5 000 points</div>
+                  </div>
+                </>
+              )}
+            </div>
 
-        </div>}
+
+          </div>
+        </div>
+      }
     </div>
+
   );
+
 };
 
 export default GameComponent;
