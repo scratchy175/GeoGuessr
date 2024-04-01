@@ -8,7 +8,10 @@ import { fetchGeoJsonData, generateRandomPointInFeature } from '@/utils/geoJsonU
 import GameInfoBar from './GameInfoBar';
 import MapContainer from './MapContainer';
 import { addRound } from '@/services/addRound';
+import { getRounds } from '@/services/getRounds';
 import { useRouter } from 'next/navigation';
+import { useGameActions } from "@/hooks/useGameActions";
+
 import './style.css';
 
 
@@ -55,6 +58,10 @@ const GameComponent = ({ params }) => {
 
   const initialTime = 100; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
+
+  const { handlePlayClick } = useGameActions();
+
+  const [showDetails, setShowDetails] = useState(false);
 
 
   const resetTimer = (newTime = initialTime) => {
@@ -163,18 +170,22 @@ const GameComponent = ({ params }) => {
   // Fonction pour traiter les données Street View.
   const processSVData = useCallback((data, status, features, attempt, randomFeatureIndex) => {
     if (status === 'OK') {
-      setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });      
+      setInitialStreetViewLocation({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });
       setTimeout(() => {
 
         streetViewPanorama.current.setPano(data.location.pano);
         streetViewPanorama.current.setVisible(true);
-        
+        // log loccation
+
+
       }, 1);
       setWaitingScreen(false);
 
-      
 
-      console.log('Street View data:', data);
+
+      console.log('Street View data:', data.getLocation().latLng.toJSON());
+      console.log('Initial Street View location:', streetViewPanorama.current.getPosition());
+
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
     } else {
@@ -188,9 +199,12 @@ const GameComponent = ({ params }) => {
 
   // Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = useCallback(() => {
-    const bounds = new google.maps.LatLngBounds();
     moveMapAndResize();
-    addResultMarker();
+
+
+
+    const bounds = new google.maps.LatLngBounds();
+    addResultMarker(initialStreetViewLocation, '/mapPoint.webp');
     if (window.marker) {
       const user_position = {
         lat: window.marker.position.lat,
@@ -201,31 +215,14 @@ const GameComponent = ({ params }) => {
       const options = { units: 'kilometers' };
       const distance2 = distance(from, to, options);
       console.log(distance2);
-      score.current = Math.round(5000 * Math.exp(-10 * distance2 / 4000));
+      score.current = Math.round(5000 * Math.exp(-10 * distance2 / 16000));
       totalScore.current += score.current;
       distanceG.current = Math.round(distance2);
 
-      const lineSymbol = {
-        path: "M 0,-1 0,1",
-        strokeOpacity: 1,
-        scale: 4,
-      };
+      drawLine(user_position, initialStreetViewLocation);
 
-      window.line = new google.maps.Polyline({
-        path: [user_position, initialStreetViewLocation],
-        geodesic: false,
-        strokeColor: '#000000',
-        strokeOpacity: 0,
-        icons: [
-          {
-            icon: lineSymbol,
-            offset: "0",
-            repeat: "20px",
-          },
-        ],
-        strokeWeight: 1,
-        map: mapRef.current,
-      });
+
+
       bounds.extend(user_position);
 
     }
@@ -236,37 +233,102 @@ const GameComponent = ({ params }) => {
     setTimeout(() => {
       mapRef.current.fitBounds(bounds);
     }, 100);
-    const mapPointString = `Lat: ${initialStreetViewLocation.lat}, Lng: ${initialStreetViewLocation.lng}`;
-    const userPointString = `Lat: ${window.marker?.position.lat}, Lng: ${window.marker?.position.lng}`;
-    //addRound(params.game_id, round.current, score.current, distanceG.current, initialTime - timeLeft, userPointString, mapPointString);
+    const mapPointString = `(${initialStreetViewLocation.lat}, ${initialStreetViewLocation.lng})`;
+    const userPointString = `(${window.marker?.position.lat}, ${window.marker?.position.lng})`;
+    addRound(params.id, round.current, score.current, distanceG.current, initialTime - timeLeft, userPointString, mapPointString)
+
   }, [initialStreetViewLocation, moveMapAndResize]);
 
-  const addResultMarker = () => {
+  const drawLine = (user_position, mapLocation) => {
+    const lineSymbol = {
+      path: "M 0,-1 0,1",
+      strokeOpacity: 1,
+      scale: 4,
+    };
+
+    window.line = new google.maps.Polyline({
+      path: [user_position, mapLocation],
+      geodesic: false,
+      strokeColor: '#000000',
+      strokeOpacity: 0,
+      icons: [
+        {
+          icon: lineSymbol,
+          offset: "0",
+          repeat: "20px",
+        },
+      ],
+      strokeWeight: 1,
+      map: mapRef.current,
+    });
+  };
+
+  const addResultMarker = (location, marker_Path, markerNumber) => {
     // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+      // Créer un conteneur pour le marqueur et le numéro
+      const markerContainer = document.createElement('div');
+      markerContainer.style.position = 'relative';
+      markerContainer.style.display = 'flex';
+      markerContainer.style.justifyContent = 'center';
+      markerContainer.style.alignItems = 'center';
+      markerContainer.style.width = '40px';
+      markerContainer.style.height = '40px';
+      markerContainer.style.transform = 'translate(0, +20%)';
+
+
       // Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
-      markerDiv.src = '/mapPoint.webp';
-      markerDiv.style.className = 'custom-marker';
-      markerDiv.style.width = '40px';
-      markerDiv.style.height = '40px';
-      markerDiv.style.transform = 'translate(0, +40%)'; // Center the marker
+      markerDiv.src = marker_Path;
+      markerDiv.style.width = '100%'; // Use 100% to fill the container
+      markerDiv.style.height = '100%'; // Use 100% to fill the container
       markerDiv.style.borderRadius = '30px';
       markerDiv.style.borderWidth = '4px';
       markerDiv.style.borderColor = 'white';
 
+
+      // Ajouter le marqueur au conteneur
+      markerContainer.appendChild(markerDiv);
+      if (markerNumber) {
+        // Créer un élément pour le numéro
+        const numberDiv = document.createElement('div');
+        numberDiv.textContent = markerNumber; // Set the marker number
+        numberDiv.style.position = 'absolute'; // Position it over the marker
+        numberDiv.style.color = 'black'; // Choose a text color that stands out
+        numberDiv.style.fontWeight = 'bold'; // Make the number bold
+        numberDiv.style.fontSize = '12px'; // Adjust font size as needed
+        numberDiv.style.backgroundColor = 'white'; // Use a white background
+        numberDiv.style.borderRadius = '100%'; // Make the background a circle
+        numberDiv.style.width = '18px'; // Set the width of the number
+        numberDiv.style.height = '18px'; // Set the height of the number
+        numberDiv.style.display = 'flex'; // Use flex to center the number
+        numberDiv.style.justifyContent = 'center'; // Center the number
+        numberDiv.style.alignItems = 'center'; // Center the number
+        numberDiv.style.transform = 'translate(75%, 75%)'; // Center the number
+
+
+        // Ajouter le numéro au conteneur
+        markerContainer.appendChild(numberDiv);
+      }
+
       // Creating an instance of AdvancedMarkerElement
       window.marker2 = new AdvancedMarkerElement({
-        position: initialStreetViewLocation,
+        position: location,
         map: mapRef.current,
-        content: markerDiv, // Optional
+        content: markerContainer, // Use the container as the content
       });
     });
-
   }
 
+
   const nextRound = useCallback(() => {
-    if (round.current === 5) {
+    if (window.marker) {
+      window.marker.setMap(null);
+      window.marker = null;
+      window.line.setMap(null);
+    }
+    window.marker2.setMap(null);
+    if (round.current === 2) {
       setEndGame(true);
       handleEndGame();
       return;
@@ -276,12 +338,7 @@ const GameComponent = ({ params }) => {
     setWaitingScreen(true);
     showRandomStreetView(globalGeoJsonData.features);
     console.log('Next round');
-    if (window.marker) {
-      window.marker.setMap(null);
-      window.marker = null;
-      window.line.setMap(null);
-    }
-    window.marker2.setMap(null);
+
 
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
@@ -333,15 +390,10 @@ const GameComponent = ({ params }) => {
     router.push('/');
   }
 
-  const replay = () => {
-    router.push('/game/random_id');
 
+  const switchResultMode = () => {
+    setShowDetails(!showDetails);
 
-    //more stuff here
-    window.location.reload();
-  }
-
-  const showDetails = () => {
     console.log('Show details');
   }
 
@@ -372,6 +424,34 @@ const GameComponent = ({ params }) => {
 
 
   const handleEndGame = () => {
+    const bounds = new google.maps.LatLngBounds();
+    getRounds(params.id).then((rounds) => {
+      console.log('Rounds:', rounds.result);
+      rounds.result.forEach((round) => {
+        console.log(round.map_point);
+        const locationParts = round.map_point.replace(/[()]/g, '').split(', ');
+        const locationObject = {
+          lat: parseFloat(locationParts[0]),
+          lng: parseFloat(locationParts[1])
+        };
+        addResultMarker(locationObject, '/mapPoint.webp', round.round_nb);
+        const userLocationParts = round.user_point.replace(/[()]/g, '').split(', ');
+        const userLocationObject = {
+          lat: parseFloat(userLocationParts[0]),
+          lng: parseFloat(userLocationParts[1])
+        };
+        addResultMarker(userLocationObject, '/Marker5.webp');
+        drawLine(userLocationObject, locationObject);
+        bounds.extend(userLocationObject);
+
+        bounds.extend(locationObject);
+
+
+      });
+    });
+    setTimeout(() => {
+      mapRef.current.fitBounds(bounds);
+    }, 100);
     console.log('End game');
   }
 
@@ -384,16 +464,16 @@ const GameComponent = ({ params }) => {
 
       {waitingScreen &&
         <div id="waitingScreen" className="waiting-screen flex flex-col justify-center items-center">
-        <div className="loader-container">
-          <div className="map-container flex justify-center items-center">
-            <Image src={map} alt="map" width={100} height={100} />
+          <div className="loader-container">
+            <div className="map-container flex justify-center items-center">
+              <Image src={map} alt="map" width={100} height={100} />
+            </div>
+            <div className="loader"></div>
+
           </div>
-          <div className="loader"></div>
-          
+          <div className="text relative b-5 text-white">Chargement de la carte...</div>
         </div>
-        <div className="text relative b-5 text-white">Chargement de la carte...</div>
-      </div>
-      
+
       }
       <div className={`w-full h-full relative ${showResult || waitingScreen ? 'hidden' : ''}`}>
 
@@ -434,25 +514,39 @@ const GameComponent = ({ params }) => {
 
       {showResult &&
         <div class="result-container w-full h-full">
-          <div class="top-part h-5/6">
-            <div class="flex justify-center items-center pt-5 absolute left-0 right-0 z-10">
+          <div class="top-part h-5/6 relative">
+            <div class="flex flex-col justify-center items-center pt-5 absolute left-0 right-0 z-10">
               <div class="bg-black py-2 px-4 rounded-lg bg-opacity-30 pointer-events-none">
-                <div class="text-white text-lg font-bold">Tour {round.current}/5</div>
+                <div class="text-white text-lg font-bold">{endGame ? "Résultats" : `${round.current}/5`}</div>
               </div>
             </div>
-            <div id="resultsMap" className="relative h-full">
-
+            {showDetails ? (
+            <>
+            <div class="absolute inset-0 flex justify-center items-center z-10">
+              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{totalScore.current}</div>
+              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 25 000 points</div>
             </div>
+            </>
+            ) : (
+              <div class="absolute inset-0 flex justify-center items-center z-10">
+                <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{score.current}</div>
+                <div class="text-white
+                text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 5 000 points</div>
+              </div>
+            )
+          }
+            <div id="resultsMap" class="relative h-full"></div>
           </div>
+
           <div class="relative bottom-part h-1/6">
             <div className={`relative bottom-part h-1/6 bg-purple-950 flex justify-center items-center space-x-2 sm:space-x-8 md:space-x-20 lg:space-x-80 h-full flex-wrap`}>
               {endGame ? (
                 <>
-                  <button onClick={showDetails}
+                  <button onClick={switchResultMode}
                     class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
                     Voir le détail
                   </button>
-                  <button onClick={replay}
+                  <button onClick={handlePlayClick}
                     class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
                     Rejouer
                   </button>

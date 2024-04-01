@@ -4,9 +4,8 @@ import { NextResponse } from "next/server";
 // add a new round
 export async function POST(request) {
     try {
-        const { round_id, game_id, round_nb, score, distance, time, user_point, map_point } = await request.json();
-
-        if (!round_id || !game_id || !round_nb || !score || !distance || !time || !user_point || !map_point) {
+        const {game_id, round_nb, score, distance, time, user_point, map_point } = await request.json();
+        if (!game_id || round_nb === undefined || score === undefined || distance === undefined || time === undefined || !user_point || !map_point) {
             return NextResponse.json({ message: "All fields are required" }, { status: 400 });
         }
 

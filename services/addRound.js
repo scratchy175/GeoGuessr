@@ -10,7 +10,7 @@ export const addRound = async (game_id, round_nb, score, distance, time, user_po
       time,
       user_point,
       map_point,
-    });
+        });
     return response.data;
   } catch (error) {
     console.error("Error adding round:", error);
