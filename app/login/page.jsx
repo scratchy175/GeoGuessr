@@ -1,31 +1,30 @@
 "use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
-import ThreeDotAnimation from "@/components/ThreeDotAnimation";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
+import ThreeDotAnimation from '@/components/ThreeDotAnimation';
 import React from 'react';
-
-
 
 const Login = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
   const clearInputs = () => {
-    setEmail("");
-    setPassword("");
-    setError("");
+    setEmail('');
+    setPassword('');
+    setError('');
   };
+
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
-    signIn("credentials", {
+    signIn('credentials', {
       email,
       password,
       redirect: false,
@@ -34,25 +33,28 @@ const Login = () => {
         if (res && res.error) {
           const errorObject = JSON.parse(res.error);
           setError(errorObject.message);
-
           setLoading(false);
         } else {
           clearInputs();
           setLoading(false);
-          router.push("/");
+          router.push('/');
           window.location.reload();
         }
       })
       .catch((error) => {
-
         setLoading(false);
       });
   };
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: 'url("/planete.jpg")' }}
+      className="relative flex justify-center items-center bg-cover bg-center h-screen"
+      style={{
+        backgroundImage: `url('/fondliege.svg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
     >
       <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-md w-96 text-gray-800">
         <h2 className="text-2xl font-semibold mb-4">
@@ -105,7 +107,7 @@ const Login = () => {
         </form>
         <div className="mt-4 text-center">
           <p className="text-gray-600">
-            Dont have an account?{" "}
+            Dont have an account?{' '}
             <Link href="/signup" className="text-indigo-500">
               Sign up
             </Link>

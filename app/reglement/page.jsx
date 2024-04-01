@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from 'react';
 
 const App = () => {
@@ -6,21 +6,19 @@ const App = () => {
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
       {/* Fond */}
       <img
-        src="/fondregles.svg"
+        src="/reglement/fondregles.png"
         alt="Fond Liege"
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-          {/* Image par-dessus */}
-          <div className="absolute inset-0 flex justify-center items-center">
+      {/* Image par-dessus */}
+      <div className="absolute inset-0 flex justify-center items-center">
         <img
-          src="/regles.png"
+          src="/reglement/regles.png"
           alt="Image par dessus"
           className="w-full h-full object-contain"
         />
       </div>
-
-
     </div>
   );
 }

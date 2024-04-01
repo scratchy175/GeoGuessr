@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from 'react';
 
 const App = () => {
@@ -6,7 +6,7 @@ const App = () => {
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
       {/* Fond */}
       <img
-        src="/fondliege.svg"
+        src="/commentjouer/fondcommentjouer.png"
         alt="Fond Liege"
         className="absolute inset-0 w-full h-full object-cover"
       />
@@ -14,7 +14,7 @@ const App = () => {
       {/* Image par-dessus */}
       <div className="absolute inset-0 flex justify-center items-center">
         <img
-          src="/commentjouer.svg"
+          src="/commentjouer/commentjouer.png"
           alt="Image par dessus"
           className="w-full h-full object-contain"
         />

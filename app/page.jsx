@@ -1,5 +1,4 @@
 "use client"
-import './Fonts.css';
 import React, { useEffect } from 'react';
 
 const App = () => {
@@ -17,10 +16,10 @@ const App = () => {
     <div
       className="relative flex justify-center items-center bg-cover bg-center h-screen"
       style={{
-        backgroundImage: `url(/fondliege.svg)`,
+        backgroundImage: `url('/main/fondliege.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundRepeat: 'repeat',
       }}
     >
       {/* Conteneur pour la page par-dessus */}
@@ -38,7 +37,7 @@ const App = () => {
         {/* Image par-dessus */}
         <div style={{ position: 'relative', width: '150%', height: '100%' }}>
           <img
-            src="/fondpapier.svg"
+            src="/main/fondpapier.png"
             alt="Image par dessus"
             style={{
               width: '100%',
@@ -59,10 +58,20 @@ const App = () => {
           width: '90%', // Ajustement de la largeur pour la rendre responsive
         }}
       >
-        <img src="/globe.svg" alt="Globe" style={{ width: '100%' }} />
+        <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
       </div>
-     
-      {/* Contenu de votre application */}
+
+      <button
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+        style={{
+          position: 'absolute',
+          bottom: '20%',
+          left: '33%',
+          width: '10%',
+        }}
+      >
+        Démarrer l'exploration
+      </button>
     </div>
   );
 };
