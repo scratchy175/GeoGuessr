@@ -1,76 +1,79 @@
 "use client"
-import Image from "next/image";
-import { motion } from "framer-motion";
+import React, { useEffect } from 'react';
 
-import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
-import { signOut, getSession } from "next-auth/react";
-import { useRouter } from 'next/navigation';
-import Navbar from "@/components/Navbar";
-import footer from "@/components/footer";
-import { useGameActions } from "@/hooks/useGameActions";
-
-
-export default function Home() {
-  const [showMenu, setShowMenu] = useState(false);
-
-
-  const [session, setSession] = useState(null);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [id, setUserId] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const fetchData = async () => {
-    const session = await getSession();
-    setSession(session);
-
-    if (session) {
-      setUsername(session.user.username);
-      setEmail(session.user.email); // Retrieve email
-      setUserId(session.user.id); // Retrieve user ID
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
-
+const App = () => {
   useEffect(() => {
-    fetchData();
+    // Empêcher le défilement lorsque l'application est en plein écran
+    document.documentElement.style.overflow = 'hidden';
+
+    // Remettre le défilement lorsque le composant est démonté
+    return () => {
+      document.documentElement.style.overflow = 'auto';
+    };
   }, []);
 
-  const router = useRouter();
-  const { handlePlayClick } = useGameActions();
   return (
-    <>
-      <div className="relative h-screen">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url("/planete.jpg")' }}>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
-            <h1 className="text-4xl font-bold mb-4">Bienvenue</h1>
-            <div>
-              <button
-                onClick={handlePlayClick}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Play
-              </button>
-            </div>
-          </div>
+    <div
+      className="relative flex justify-center items-center bg-cover bg-center h-screen"
+      style={{
+        backgroundImage: `url('/main/fondliege.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'repeat',
+      }}
+    >
+      {/* Conteneur pour la page par-dessus */}
+      <div
+        className="relative"
+        style={{
+          flex: 1,
+          maxWidth: '90%',
+          maxHeight: '90%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Image par-dessus */}
+        <div style={{ position: 'relative', width: '150%', height: '100%' }}>
+          <img
+            src="/main/fondpapier.png"
+            alt="Image par dessus"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
         </div>
       </div>
 
+      {/* SVG du globe */}
+      <div
+        className="absolute right-0"
+        style={{
+          right: '-41%', // Ajustement pour une position plus à droite sur de plus petits écrans
+          top: '50%', // Centrage vertical
+          transform: 'translateY(-45%)', // Centrage vertical
+          width: '90%', // Ajustement de la largeur pour la rendre responsive
+        }}
+      >
+        <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
+      </div>
 
-
-   
- : (
-       <></>
-
-
-
-
-      )
-      
-    </>
-
+      <button
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+        style={{
+          position: 'absolute',
+          bottom: '20%',
+          left: '33%',
+          width: '10%',
+        }}
+      >
+        Démarrer l'exploration
+      </button>
+    </div>
   );
-}
+};
+
+export default App;
