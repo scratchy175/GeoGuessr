@@ -8,17 +8,31 @@ datasource db {
 }
 
 model User {
-  id                 Int                @id @default(autoincrement())
-  username           String             @unique
-  email              String             @unique
-  password           String
-  scores Score[]
-}
-model Score {
-  id                 Int                @id @default(autoincrement())
-  player   User @relation(fields: [userid], references: [id])
-  userid             Int             @unique
-  Score              Int              
-  classement         Int                
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  username String @unique
+  games    Game[]
 }
 
+model Game {
+  game_id  String   @id
+  user_id  Int
+  map_type String
+  date     DateTime @default(now())
+  state    String
+  user     User     @relation(fields: [user_id], references: [id])
+  rounds   Round[]
+}
+
+model Round {
+  round_id   Int    @id @default(autoincrement())
+  game_id    String
+  round_nb   Int
+  score      Int
+  distance   Int
+  time       Int
+  user_point String
+  map_point  String
+  game       Game   @relation(fields: [game_id], references: [game_id])
+}
