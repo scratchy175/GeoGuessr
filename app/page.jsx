@@ -1,7 +1,10 @@
 "use client"
 import React, { useEffect } from 'react';
+import { useGameActions } from "@/hooks/useGameActions";
+
 
 const App = () => {
+  const { handlePlayClick } = useGameActions();
   useEffect(() => {
     // Empêcher le défilement lorsque l'application est en plein écran
     document.documentElement.style.overflow = 'hidden';
@@ -11,6 +14,12 @@ const App = () => {
       document.documentElement.style.overflow = 'auto';
     };
   }, []);
+
+  const test = () => {
+    console.log('test');
+    handlePlayClick();
+  }
+
 
   return (
     <div
@@ -69,6 +78,7 @@ const App = () => {
           left: '33%',
           width: '10%',
         }}
+        onClick={test}
       >
         Démarrer l'exploration
       </button>
