@@ -80,7 +80,7 @@ const App = () => {
         }}
         onClick={test}
       >
-        Démarrer l'exploration
+        <p>Démarrer l&apos;exploration</p>
       </button>
     </div>
   );
