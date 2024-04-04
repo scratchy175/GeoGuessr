@@ -115,6 +115,7 @@ const GameComponent = ({ params }) => {
           disableDefaultUI: true,
           zoomControl: true,
           showRoadLabels: false,
+
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
@@ -227,7 +228,7 @@ const GameComponent = ({ params }) => {
 
     }
     else {
-      distanceG.current = "Temps écoulé";
+      distanceG.current = 0;
     }
     bounds.extend(initialStreetViewLocation);
     setTimeout(() => {
@@ -345,6 +346,7 @@ const GameComponent = ({ params }) => {
     round.current++;
     isGuessB(false);
     resetTimer();
+    score.current = 0;
   }, [globalGeoJsonData, moveMapAndResize, showRandomStreetView]);
 
   const initializeMarker = () => {
@@ -446,14 +448,62 @@ const GameComponent = ({ params }) => {
 
         bounds.extend(locationObject);
 
+        setTimeout(() => {
+        const gameDetails = document.getElementById('gameDetails')
+
+        const roundDetailsDiv = createRoundDetailElement(round);
+  gameDetails.appendChild(roundDetailsDiv);
+        }
+        , 1000);
 
       });
     });
     setTimeout(() => {
       mapRef.current.fitBounds(bounds);
-    }, 100);
+    }, 500);
     console.log('End game');
+
   }
+
+  const createRoundDetailElement = (round) => {
+    // Main container for the round detail
+    const roundDetailsDiv = document.createElement('div');
+    roundDetailsDiv.className = 'flex items-center bg-purple-950 text-white rounded-lg shadow-lg my-2';
+    roundDetailsDiv.style.padding = '0.5rem';
+    roundDetailsDiv.style.alignItems = 'center';
+    roundDetailsDiv.style.display = 'flex';
+    roundDetailsDiv.style.justifyContent = 'space-between';
+  
+    // Round number
+    const roundNumber = document.createElement('div');
+    roundNumber.className = 'flex items-center justify-center bg-yellow-400 text-black rounded-full';
+    roundNumber.style.width = '2.5rem';
+    roundNumber.style.height = '2.5rem';
+    roundNumber.textContent = round.round_nb;
+    roundDetailsDiv.appendChild(roundNumber);
+  
+    // Details container
+    const detailsContainer = document.createElement('div');
+    detailsContainer.className = 'flex flex-col flex-grow ml-4 bg-blue-600 rounded-lg';
+    detailsContainer.style.padding = '0.5rem';
+  
+    // Score
+    const score = document.createElement('div');
+    score.textContent = `${round.score} points`;
+    score.className = 'font-bold';
+    detailsContainer.appendChild(score);
+  
+    // Distance and time
+    const distanceTime = document.createElement('div');
+    distanceTime.textContent = `${round.distance} km - ${round.time}`;
+    distanceTime.className = 'text-sm';
+    detailsContainer.appendChild(distanceTime);
+  
+    roundDetailsDiv.appendChild(detailsContainer);
+  
+    return roundDetailsDiv;
+  };
+  
 
   return (
 
@@ -520,21 +570,17 @@ const GameComponent = ({ params }) => {
                 <div class="text-white text-lg font-bold">{endGame ? "Résultats" : `${round.current}/5`}</div>
               </div>
             </div>
-            {showDetails ? (
-            <>
-            <div class="absolute inset-0 flex justify-center items-center z-10">
-              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{totalScore.current}</div>
-              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 25 000 points</div>
-            </div>
-            </>
-            ) : (
-              <div class="absolute inset-0 flex justify-center items-center z-10">
-                <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{score.current}</div>
-                <div class="text-white
-                text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 5 000 points</div>
-              </div>
-            )
-          }
+            {endGame &&
+              <>
+                <div class={`absolute inset-0 flex flex-col bg-black bg-opacity-50 items-center justify-center left-0 z-10 ${showDetails ? 'hidden' : 'flex'}`}>
+                  <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{totalScore.current}</div>
+                  <div class="text-white text-xs px-4 py-2">sur 25 000 points</div>
+                </div>
+                <div id="gameDetails" class={`absolute bottom-0 left-0 text-white p-4 overflow-auto max-h-1/4 z-10 ${showDetails ? 'visible' : 'invisible'}`}>
+                </div>
+              </>
+            }
+
             <div id="resultsMap" class="relative h-full"></div>
           </div>
 
@@ -572,15 +618,11 @@ const GameComponent = ({ params }) => {
                 </>
               )}
             </div>
-
-
           </div>
         </div>
       }
     </div>
-
   );
-
 };
 
 export default GameComponent;
