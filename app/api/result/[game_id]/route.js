@@ -4,9 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request, context) {
     try {
-        console.log(context.params.game_id);
         const {game_id} = context.params;
-        console.log("game_id", game_id);
 
         if (!game_id) {
             return NextResponse.json({ message: "Game ID is required" }, { status: 400 });

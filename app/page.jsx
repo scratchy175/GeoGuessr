@@ -1,25 +1,63 @@
-"use client"
-import React, { useEffect } from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
 import { useGameActions } from "@/hooks/useGameActions";
+
+const popupStyle = {
+  backgroundImage: "url('/main/fondvierge.png')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  //maxWidth: '600px',
+  width: '50%',
+  //height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-around',
+  alignItems: 'center',
+  color: 'white',
+  boxSizing: 'border-box',
+  // Example media query adjustment
+  ...(window.innerWidth < 500 && {
+    padding: '20px', // Increase padding for small devices
+    fontSize: '14px', // Reduce font size for small devices
+  }),
+};
+
+const GameParametersPopup = ({ onClose, onConfirm }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div 
+  className="rounded-lg p-5"
+  style={popupStyle}
+>
+        <h2 className='text-black'>Select Game Parameters</h2>
+
+        <div className='space-x-48 flex flex-row'>
+          <button onClick={onClose} className='text-black' >Cancel</button>
+          <button onClick={onConfirm} className='text-black'>Start Game</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 
 const App = () => {
   const { handlePlayClick } = useGameActions();
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+
   useEffect(() => {
-    // Empêcher le défilement lorsque l'application est en plein écran
+    // Prevent scrolling when the app is fullscreen.
     document.documentElement.style.overflow = 'hidden';
 
-    // Remettre le défilement lorsque le composant est démonté
+    // Re-enable scrolling when the component is unmounted.
     return () => {
       document.documentElement.style.overflow = 'auto';
     };
   }, []);
 
-  const test = () => {
-    console.log('test');
-    handlePlayClick();
-  }
-
+  const showParametersPopup = () => {
+    setIsPopupVisible(true);
+  };
 
   return (
     <div
@@ -31,7 +69,6 @@ const App = () => {
         backgroundRepeat: 'repeat',
       }}
     >
-      {/* Conteneur pour la page par-dessus */}
       <div
         className="relative"
         style={{
@@ -43,11 +80,10 @@ const App = () => {
           justifyContent: 'center',
         }}
       >
-        {/* Image par-dessus */}
         <div style={{ position: 'relative', width: '150%', height: '100%' }}>
           <img
             src="/main/fondpapier.png"
-            alt="Image par dessus"
+            alt="Overlay Image"
             style={{
               width: '100%',
               height: '100%',
@@ -57,14 +93,13 @@ const App = () => {
         </div>
       </div>
 
-      {/* SVG du globe */}
       <div
         className="absolute right-0"
         style={{
-          right: '-41%', // Ajustement pour une position plus à droite sur de plus petits écrans
-          top: '50%', // Centrage vertical
-          transform: 'translateY(-45%)', // Centrage vertical
-          width: '90%', // Ajustement de la largeur pour la rendre responsive
+          right: '-41%',
+          top: '50%',
+          transform: 'translateY(-45%)',
+          width: '90%',
         }}
       >
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
@@ -78,12 +113,24 @@ const App = () => {
           left: '33%',
           width: '10%',
         }}
-        onClick={test}
+        onClick={showParametersPopup}
       >
-        <p>Démarrer l&apos;exploration</p>
+        <p>Démarrer l'exploration</p>
       </button>
+
+      {
+        isPopupVisible && (
+          <GameParametersPopup
+            onClose={() => setIsPopupVisible(false)}
+            onConfirm={() => {
+              handlePlayClick();
+              setIsPopupVisible(false);
+            }}
+          />
+        )
+      }
     </div>
   );
-};
+}
 
 export default App;
