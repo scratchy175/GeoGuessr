@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
+import { getSession } from "next-auth/react";
+
+
 export default function EditProfile() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -11,25 +14,29 @@ export default function EditProfile() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [session, setSession] = useState(null);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const response = await axios.post('/api/edit-profile', {
-        username,
-        email,
-        password,
-      });
+    const session = await getSession();
+    if (session) {
+      try {
+        const response = await axios.post('/api/edit-profile', {
+          id: session.user.id,
+          username,
+        });
 
-      if (response.status === 200) {
-        setSuccess(true);
-        setError("");
-      } else {
-        setError("Failed to update profile");
+        if (response.status === 200) {
+          setSuccess(true);
+          setError("");
+        } else {
+          setError("Failed to update profile");
+        }
+      } catch (error) {
+        setError(error.response?.data?.message || "An error occurred");
       }
-    } catch (error) {
-      setError(error.response?.data?.message || "An error occurred");
-    }
+    };
   };
 
   return (
