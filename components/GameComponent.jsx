@@ -7,10 +7,9 @@ import Image from "next/image";
 import { fetchGeoJsonData, generateRandomPointInFeature } from '@/utils/geoJsonUtils';
 import GameInfoBar from './GameInfoBar';
 import MapContainer from './MapContainer';
+import Result from './Result';
 import { addRound } from '@/services/addRound';
 import { getRounds } from '@/services/getRounds';
-import { useRouter } from 'next/navigation';
-import { useGameActions } from "@/hooks/useGameActions";
 
 import './style.css';
 
@@ -59,9 +58,7 @@ const GameComponent = ({ params }) => {
   const initialTime = 100; // 300 = 5 minutes in seconds
   const [timeLeft, setTimeLeft] = useState(initialTime);
 
-  const { handlePlayClick } = useGameActions();
 
-  const [showDetails, setShowDetails] = useState(false);
 
 
   const resetTimer = (newTime = initialTime) => {
@@ -115,6 +112,7 @@ const GameComponent = ({ params }) => {
           disableDefaultUI: true,
           zoomControl: true,
           showRoadLabels: false,
+
         });
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
@@ -175,16 +173,8 @@ const GameComponent = ({ params }) => {
 
         streetViewPanorama.current.setPano(data.location.pano);
         streetViewPanorama.current.setVisible(true);
-        // log loccation
-
-
       }, 1);
       setWaitingScreen(false);
-
-
-
-      console.log('Street View data:', data.getLocation().latLng.toJSON());
-      console.log('Initial Street View location:', streetViewPanorama.current.getPosition());
 
     } else if (attempt < 3) {
       showRandomStreetView(features, attempt + 1);
@@ -194,15 +184,9 @@ const GameComponent = ({ params }) => {
     }
   }, []);
 
-
-
-
   // Fonction pour gérer le clic sur le bouton "Guess".
   const handleGuess = useCallback(() => {
     moveMapAndResize();
-
-
-
     const bounds = new google.maps.LatLngBounds();
     addResultMarker(initialStreetViewLocation, '/mapPoint.webp');
     if (window.marker) {
@@ -227,7 +211,7 @@ const GameComponent = ({ params }) => {
 
     }
     else {
-      distanceG.current = "Temps écoulé";
+      distanceG.current = 0;
     }
     bounds.extend(initialStreetViewLocation);
     setTimeout(() => {
@@ -266,46 +250,23 @@ const GameComponent = ({ params }) => {
   const addResultMarker = (location, marker_Path, markerNumber) => {
     // Charger la bibliothèque des marqueurs avancés
     loadAdvancedMarkerLibrary().then(AdvancedMarkerElement => {
+     
       // Créer un conteneur pour le marqueur et le numéro
       const markerContainer = document.createElement('div');
-      markerContainer.style.position = 'relative';
-      markerContainer.style.display = 'flex';
-      markerContainer.style.justifyContent = 'center';
-      markerContainer.style.alignItems = 'center';
-      markerContainer.style.width = '40px';
-      markerContainer.style.height = '40px';
-      markerContainer.style.transform = 'translate(0, +20%)';
-
-
+      markerContainer.className = 'relative flex justify-center items-center w-10 h-10 transform translate-y-2';
+      
       // Créer un marqueur pour la position de l'utilisateur
       const markerDiv = document.createElement('img');
       markerDiv.src = marker_Path;
-      markerDiv.style.width = '100%'; // Use 100% to fill the container
-      markerDiv.style.height = '100%'; // Use 100% to fill the container
-      markerDiv.style.borderRadius = '30px';
-      markerDiv.style.borderWidth = '4px';
-      markerDiv.style.borderColor = 'white';
-
+      markerDiv.className = 'w-full h-full rounded-full border-4 border-white';
 
       // Ajouter le marqueur au conteneur
       markerContainer.appendChild(markerDiv);
       if (markerNumber) {
         // Créer un élément pour le numéro
         const numberDiv = document.createElement('div');
-        numberDiv.textContent = markerNumber; // Set the marker number
-        numberDiv.style.position = 'absolute'; // Position it over the marker
-        numberDiv.style.color = 'black'; // Choose a text color that stands out
-        numberDiv.style.fontWeight = 'bold'; // Make the number bold
-        numberDiv.style.fontSize = '12px'; // Adjust font size as needed
-        numberDiv.style.backgroundColor = 'white'; // Use a white background
-        numberDiv.style.borderRadius = '100%'; // Make the background a circle
-        numberDiv.style.width = '18px'; // Set the width of the number
-        numberDiv.style.height = '18px'; // Set the height of the number
-        numberDiv.style.display = 'flex'; // Use flex to center the number
-        numberDiv.style.justifyContent = 'center'; // Center the number
-        numberDiv.style.alignItems = 'center'; // Center the number
-        numberDiv.style.transform = 'translate(75%, 75%)'; // Center the number
-
+        numberDiv.textContent = markerNumber; // Set the marker number  
+        numberDiv.className = 'absolute bg-white rounded-full w-4 h-4 flex justify-center items-center transform translate-x-3 translate-y-3';
 
         // Ajouter le numéro au conteneur
         markerContainer.appendChild(numberDiv);
@@ -345,6 +306,7 @@ const GameComponent = ({ params }) => {
     round.current++;
     isGuessB(false);
     resetTimer();
+    score.current = 0;
   }, [globalGeoJsonData, moveMapAndResize, showRandomStreetView]);
 
   const initializeMarker = () => {
@@ -357,10 +319,10 @@ const GameComponent = ({ params }) => {
 
           const markerDiv = document.createElement('img');
           markerDiv.src = '/Marker5.webp';
-          markerDiv.style.className = 'custom-marker';
-          markerDiv.style.width = '50';
           markerDiv.style.height = '50px';
-          markerDiv.style.transform = 'translate(0, +20%)';
+
+          markerDiv.style.className = 'custom-marker transform translate-y-2';
+
 
 
           window.marker = new AdvancedMarkerElement({
@@ -382,21 +344,6 @@ const GameComponent = ({ params }) => {
     streetViewPanorama.current.setPosition(initialStreetViewLocation);
     streetViewPanorama.current.setVisible(true);
   }
-
-  const router = useRouter();
-
-
-  const quit = () => {
-    router.push('/');
-  }
-
-
-  const switchResultMode = () => {
-    setShowDetails(!showDetails);
-
-    console.log('Show details');
-  }
-
   // Add key press event listener
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -404,15 +351,11 @@ const GameComponent = ({ params }) => {
         event.preventDefault(); // Prevent the default action of the space key (scrolling)
         if (!showResult && guessB) { // Check if the game is in a state where guessing is allowed
           handleGuess();
-
         } else if (showResult) { // Check if the game is in a state to proceed to the next round
           nextRound();
-
-
         }
       }
     };
-
     // Add event listener when the component mounts
     window.addEventListener('keydown', handleKeyPress);
 
@@ -428,7 +371,6 @@ const GameComponent = ({ params }) => {
     getRounds(params.id).then((rounds) => {
       console.log('Rounds:', rounds.result);
       rounds.result.forEach((round) => {
-        console.log(round.map_point);
         const locationParts = round.map_point.replace(/[()]/g, '').split(', ');
         const locationObject = {
           lat: parseFloat(locationParts[0]),
@@ -446,22 +388,57 @@ const GameComponent = ({ params }) => {
 
         bounds.extend(locationObject);
 
+        setTimeout(() => {
+          const gameDetails = document.getElementById('gameDetails')
+
+          const roundDetailsDiv = createRoundDetailElement(round);
+          gameDetails.appendChild(roundDetailsDiv);
+        }
+          , 1000);
 
       });
     });
     setTimeout(() => {
       mapRef.current.fitBounds(bounds);
-    }, 100);
+    }, 500);
     console.log('End game');
+
   }
 
+  const createRoundDetailElement = (round) => {
+    // Main container for the round detail
+    const roundDetailsDiv = document.createElement('div');
+    roundDetailsDiv.className = 'flex items-center bg-purple-950 text-white rounded-lg shadow-lg my-2 p-2 justify-between';
+
+    // Round number
+    const roundNumber = document.createElement('div');
+    roundNumber.className = 'flex items-center justify-center bg-yellow-400 text-black rounded-full h-10 w-10';
+    roundNumber.textContent = round.round_nb;
+    roundDetailsDiv.appendChild(roundNumber);
+
+    // Details container
+    const detailsContainer = document.createElement('div');
+    detailsContainer.className = 'flex flex-col flex-grow ml-4 bg-blue-600 rounded-lg p-2';
+
+    // Score
+    const score = document.createElement('div');
+    score.textContent = `${round.score} points`;
+    score.className = 'font-bold';
+    detailsContainer.appendChild(score);
+
+    // Distance and time
+    const distanceTime = document.createElement('div');
+    distanceTime.textContent = `${round.distance} km - ${round.time}`;
+    distanceTime.className = 'text-sm';
+    detailsContainer.appendChild(distanceTime);
+
+    roundDetailsDiv.appendChild(detailsContainer);
+
+    return roundDetailsDiv;
+  };
+
   return (
-
-
-
     <div class="flex flex-auto relative h-screen">
-
-
       {waitingScreen &&
         <div id="waitingScreen" className="waiting-screen flex flex-col justify-center items-center">
           <div className="loader-container">
@@ -487,14 +464,12 @@ const GameComponent = ({ params }) => {
         {<div ref={streetViewElementRef}
           className="w-full h-full relative">
         </div>}
-
         <MapContainer
           mapRef={mapRef}
           mapContainerRef={mapContainerRef}
           handleGuess={handleGuess}
           guessB={guessB}
         />
-
         <div class="absolute bottom-28 right-2 z-10 flex items-center">
           <div class={`relative bg-black bg-opacity-50 rounded-full mr-2 text-white text-xs font-bold px-2 py-1 transition-opacity duration-300 transition-transform ease-out ${showTooltip
             ? "opacity-100 scale-100" // Tooltip visible
@@ -511,76 +486,17 @@ const GameComponent = ({ params }) => {
           </button>
         </div>
       </div>
-
-      {showResult &&
-        <div class="result-container w-full h-full">
-          <div class="top-part h-5/6 relative">
-            <div class="flex flex-col justify-center items-center pt-5 absolute left-0 right-0 z-10">
-              <div class="bg-black py-2 px-4 rounded-lg bg-opacity-30 pointer-events-none">
-                <div class="text-white text-lg font-bold">{endGame ? "Résultats" : `${round.current}/5`}</div>
-              </div>
-            </div>
-            {showDetails ? (
-            <>
-            <div class="absolute inset-0 flex justify-center items-center z-10">
-              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{totalScore.current}</div>
-              <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 25 000 points</div>
-            </div>
-            </>
-            ) : (
-              <div class="absolute inset-0 flex justify-center items-center z-10">
-                <div class="text-white text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">{score.current}</div>
-                <div class="text-white
-                text-2xl font-bold bg-black bg-opacity-50 px-4 py-2 rounded-lg">sur 5 000 points</div>
-              </div>
-            )
-          }
-            <div id="resultsMap" class="relative h-full"></div>
-          </div>
-
-          <div class="relative bottom-part h-1/6">
-            <div className={`relative bottom-part h-1/6 bg-purple-950 flex justify-center items-center space-x-2 sm:space-x-8 md:space-x-20 lg:space-x-80 h-full flex-wrap`}>
-              {endGame ? (
-                <>
-                  <button onClick={switchResultMode}
-                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-                    Voir le détail
-                  </button>
-                  <button onClick={handlePlayClick}
-                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-                    Rejouer
-                  </button>
-                  <button onClick={quit}
-                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-                    Quitter
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div class="relative text-white text-center mx-2">
-                    <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{distanceG.current} km</div>
-                    <div class="text-xs sm:text-sm md:text-base">Depuis la localisation</div>
-                  </div>
-                  <button onClick={nextRound}
-                    class="relative bg-green-500 py-2 px-4 rounded-full text-xs sm:text-sm md:text-md lg:text-lg text-white shadow-md transition ease-in-out duration-75 my-2 hover:bg-yellow-900 hover:scale-110">
-                    {round.current < 5 ? "Suivant" : "Voir les résultats"}
-                  </button>
-                  <div class="relative text-white text-center mx-2">
-                    <div class="uppercase font-bold text-xs sm:text-sm md:text-md lg:text-lg">{score.current}</div>
-                    <div class="text-xs sm:text-sm md:text-base">sur 5 000 points</div>
-                  </div>
-                </>
-              )}
-            </div>
-
-
-          </div>
-        </div>
-      }
+      <Result
+        showResult={showResult}
+        endGame={endGame}
+        round={round}
+        totalScore={totalScore}
+        distanceG={distanceG}
+        score={score}
+        nextRound={nextRound}
+      />
     </div>
-
   );
-
 };
 
 export default GameComponent;

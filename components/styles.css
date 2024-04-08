@@ -1,0 +1,39 @@
+.custom-btn {
+  position: relative;
+  padding: 25px 50px; /* Ajustez le padding pour augmenter la taille des boutons */
+}
+
+.btn-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: black;
+  font-weight: bold; /* Rendre le texte en gras */
+  /* Ajoutez d'autres styles au besoin */
+}
+
+/* styles.css */
+.text-custom-color {
+  color: #493423;
+}
+
+.or-color {
+  color: #fccd60;
+}
+
+.argent-color {
+  color: #d2d4d7;
+}
+
+.bronze-color {
+  color: #856d4a;
+}
+
+.pseudo-color {
+  color: #402b2b;
+}
+
+.creme {
+  color: #fffbf2;
+}
