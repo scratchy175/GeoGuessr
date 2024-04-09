@@ -2,17 +2,32 @@
 import React, { useEffect, useState } from 'react';
 import { useGameActions } from "@/hooks/useGameActions";
 
+const popupStyle = {
+  backgroundImage: "url('/main/fondvierge.png')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  //maxWidth: '600px',
+  width: '50%',
+  //height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-around',
+  alignItems: 'center',
+  color: 'white',
+  boxSizing: 'border-box',
+};
+
 const GameParametersPopup = ({ onClose, onConfirm }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div 
-        className="rounded-lg p-5"
-        style={popupStyle}
-      >
+  className="rounded-lg p-5"
+  style={popupStyle}
+>
         <h2 className='text-black'>Select Game Parameters</h2>
 
         <div className='space-x-48 flex flex-row'>
-          <button onClick={onClose} className='text-black'>Cancel</button>
+          <button onClick={onClose} className='text-black' >Cancel</button>
           <button onClick={onConfirm} className='text-black'>Start Game</button>
         </div>
       </div>
@@ -20,42 +35,19 @@ const GameParametersPopup = ({ onClose, onConfirm }) => {
   );
 };
 
+
+
 const App = () => {
   const { handlePlayClick } = useGameActions();
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [popupStyle, setPopupStyle] = useState({
-    backgroundImage: "url('/main/fondvierge.png')",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    width: '50%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    color: 'white',
-    boxSizing: 'border-box',
-  });
 
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 500) {
-        setPopupStyle(prevStyle => ({
-          ...prevStyle,
-          padding: '20px',
-          fontSize: '14px',
-        }));
-      }
-    };
+    // Prevent scrolling when the app is fullscreen.
+    document.documentElement.style.overflow = 'hidden';
 
-    // Initial call to set styles
-    handleResize();
-
-    // Event listener for window resize
-    window.addEventListener('resize', handleResize);
-
-    // Clean up the event listener
+    // Re-enable scrolling when the component is unmounted.
     return () => {
-      window.removeEventListener('resize', handleResize);
+      document.documentElement.style.overflow = 'auto';
     };
   }, []);
 
@@ -119,7 +111,7 @@ const App = () => {
         }}
         onClick={showParametersPopup}
       >
-        <p>Démarrer l&apos;exploration</p>
+    <p>Démarrer l&apos;exploration</p>
       </button>
 
       {
