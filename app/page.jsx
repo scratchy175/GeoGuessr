@@ -15,11 +15,6 @@ const popupStyle = {
   alignItems: 'center',
   color: 'white',
   boxSizing: 'border-box',
-  // Example media query adjustment
-  ...(window.innerWidth < 500 && {
-    padding: '20px', // Increase padding for small devices
-    fontSize: '14px', // Reduce font size for small devices
-  }),
 };
 
 const GameParametersPopup = ({ onClose, onConfirm }) => {
@@ -39,6 +34,7 @@ const GameParametersPopup = ({ onClose, onConfirm }) => {
     </div>
   );
 };
+
 
 
 const App = () => {
