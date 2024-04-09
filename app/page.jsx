@@ -115,7 +115,7 @@ const App = () => {
         }}
         onClick={showParametersPopup}
       >
-        <p>Démarrer l'exploration</p>
+    <p>Démarrer l&apos;exploration</p>
       </button>
 
       {
