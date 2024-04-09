@@ -3,10 +3,10 @@ import { useEffect, useState, useRef } from "react";
 import { Transition } from "@headlessui/react";
 import Link from "next/link";
 import Image from "next/image";
-import logo from "@/public/logo.png";
+import logo from "@/public/logo2.png";
 import { signOut, getSession } from "next-auth/react";
 
-import styles from "./styles.css"; // Importez votre fichier de styles CSS
+import styles from "./styles.css";
 
 function Nav() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,15 +34,15 @@ function Nav() {
   return (
     <nav className="bg-transparent fixed top-0 left-0 w-full z-50">
       <div className="container-fluid px-0 sm:px-6 lg:px-9">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-50">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Image
-                className="h-8 w-8"
+                className="h-100 w-100"
                 src={logo}
-                alt="Workflow"
-                width={64}
-                height={64}
+                alt="Logo"
+                width={100}
+                height={100}
               />
             </div>
             <div className="hidden md:block">
@@ -96,7 +96,7 @@ function Nav() {
                           width={120}
                           height={60}
                         />
-                        <span className="btn-text">Welcome, {username}!</span>
+                        <span className="btn-text">Bienvenue, {username}!</span>
                       </div>
                     </span>
                     <Transition
@@ -118,39 +118,39 @@ function Nav() {
                         >
                           <div className="py-1" role="none">
                             <Link
-                              href="/profile"
+                              href="/profil"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              Profil page
+                              Profil
                             </Link>
                             <Link
-                              href="/how-to-play"
+                              href="/commentjouer"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              How to play
+                              Comment jouer
                             </Link>
                             <Link
-                              href="/rules"
+                              href="/reglement"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              Rules
+                              Reglement
                             </Link>
                             <Link
-                              href="/stats"
+                              href="/statistiques"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              Statistics
+                              Statistiques
                             </Link>
                             <Link
-                              href="/leaderboard"
+                              href="/classement"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              Leaderboard
+                              Classement
                             </Link>
                             <button
                               onClick={() => signOut()}
@@ -207,7 +207,7 @@ function Nav() {
               aria-controls="mobile-menu"
               aria-expanded="false"
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">Ouvrir le menu principal</span>
               {!isOpen ? (
                 <svg
                   className="block h-6 w-6"
@@ -329,39 +329,39 @@ function Nav() {
                           >
                             <div className="py-1" role="none">
                               <Link
-                                href="/profile"
+                                href="/profil"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                Profil page
+                                Profil
                               </Link>
                               <Link
-                                href="/how-to-play"
+                                href="/commentjouer"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                How to play
+                                Comment jouer
                               </Link>
                               <Link
-                                href="/rules"
+                                href="/reglement"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                Rules
+                                Reglement
                               </Link>
                               <Link
-                                href="/stats"
+                                href="/statistiques"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                Statistics
+                                Statistiques
                               </Link>
                               <Link
-                                href="/leaderboard"
+                                href="/classement"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                Leaderboard
+                                Classement
                               </Link>
                               <button
                                 onClick={() => signOut()}
@@ -408,7 +408,7 @@ function Nav() {
                     </>
                   )}
                 </>
-              )}
+              )} propos
             </div>
           </div>
         )}

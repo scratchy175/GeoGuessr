@@ -47,7 +47,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-cover bg-center" style={{ backgroundImage: `url('/fondliege.svg')` }}>
+    <div className="min-h-screen flex flex-col justify-center items-center bg-cover bg-center" style={{ backgroundImage: `url('/main/fondliege.png')` }}>
       <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-md w-96 text-gray-800">
         <form onSubmit={handleSubmit}>
           <h2 className="text-2xl font-semibold mb-4">

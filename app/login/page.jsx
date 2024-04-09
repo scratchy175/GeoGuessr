@@ -50,7 +50,7 @@ const Login = () => {
     <div
       className="relative flex justify-center items-center bg-cover bg-center h-screen"
       style={{
-        backgroundImage: `url('/fondliege.svg')`,
+        backgroundImage: `url('/main/fondliege.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

@@ -24,7 +24,7 @@ const App = () => {
 
       {/* Première Image par-dessus */}
       <div
-        className="absolute right-0"
+        className="absolute"
         style={{
           right: '5%', // Ajustement pour une position plus à droite sur de plus petits écrans
           top: '45%', // Centrage vertical
@@ -33,34 +33,24 @@ const App = () => {
         }}
       >
         <img src="/classement/classement1.png" alt="Globe" style={{ width: '100%' }} />
-        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-4xl text-center"
+        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-3xl text-center sm:text-xs md:text-sm lg:text-md xl:text-xl 2xl:text-3xl"
           style={{
             position: 'absolute',
-            bottom: '10%', // Ajustement pour positionner le texte en bas de l'image
+            bottom: '0%', // Ajustement pour positionner le texte en bas de l'image
             left: '7%', // Ajustement pour positionner le texte à gauche
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
           {/* Texte du classement */}
           <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">4 - Quatrième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">5 - Cinquième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">6 - Sixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">7 - Septième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">8 - Huitième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">9 - Neuvième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">10 - Dixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color font-bold">Vous - Seizième</p>
         </div>
       </div>
@@ -76,34 +66,24 @@ const App = () => {
         }}
       >
         <img src="/classement/classement2.png" alt="Globe" style={{ width: '100%' }} />
-        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-4xl text-center"
+        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-3xl text-center sm:text-xs md:text-sm lg:text-md xl:text-xl 2xl:text-3xl"
           style={{
             position: 'absolute',
-            bottom: '40%', // Ajustement pour positionner le texte au-dessus de l'image
+            bottom: '35%', // Ajustement pour positionner le texte au-dessus de l'image
             left: '37%', // Ajustement pour positionner le texte au centre
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
           {/* Texte du classement */}
           <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">4 - Quatrième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">5 - Cinquième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">6 - Sixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">7 - Septième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">8 - Huitième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">9 - Neuvième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">10 - Dixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color font-bold">Vous - Seizième</p>
         </div>
       </div>
@@ -119,34 +99,24 @@ const App = () => {
         }}
       >
         <img src="/classement/classement3.png" alt="Globe" style={{ width: '100%' }} />
-        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-4xl text-center"
+        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-3xl text-center sm:text-xs md:text-sm lg:text-md xl:text-xl 2xl:text-3xl"
           style={{
             position: 'absolute',
-            bottom: '0%', // Ajustement pour positionner le texte au-dessus de l'image
+            top: '46%', // Ajustement pour positionner le texte au-dessus de l'image
             left: '69%', // Ajustement pour positionner le texte au centre
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
           {/* Texte du classement */}
           <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">4 - Quatrième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">5 - Cinquième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">6 - Sixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">7 - Septième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">8 - Huitième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">9 - Neuvième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color">10 - Dixième</p>
-          <p className="argent-color font-bold" style={{ marginBottom: '5px' }}></p>
           <p className="text-custom-color font-bold">Vous - Seizième</p>
         </div>
       </div>
