@@ -39,7 +39,16 @@ export default function EditProfile() {
     };
   };
 
-  return (
+  return (    
+  <div
+    className="relative flex justify-center items-center bg-cover bg-center h-screen"
+    style={{
+      backgroundImage: `url('/main/fondliege.png')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    }}
+  >
     <div className="min-h-screen flex flex-col justify-center items-center">
       <form onSubmit={handleSubmit} className="w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4">Edit Profile</h1>
@@ -94,5 +103,6 @@ export default function EditProfile() {
         </button>
       </form>
     </div>
+  </div>
   );
 }
