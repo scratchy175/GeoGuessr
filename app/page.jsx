@@ -99,15 +99,13 @@ const App = () => {
         }}
       >
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
-      </div>
-
+        
       <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
         style={{
+          bottom: '26%',
+          left: '-21%',
           position: 'absolute',
-          bottom: '20%',
-          left: '33%',
-          width: '10%',
         }}
         onClick={showParametersPopup}
       >
@@ -125,6 +123,7 @@ const App = () => {
           />
         )
       }
+      </div>
     </div>
   );
 }

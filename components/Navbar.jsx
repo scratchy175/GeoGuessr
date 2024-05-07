@@ -110,7 +110,6 @@ function Nav() {
                     >
                       {(ref) => (
                         <div
-                          ref={ref}
                           className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
                           role="menu"
                           aria-orientation="vertical"
@@ -151,6 +150,13 @@ function Nav() {
                               role="menuitem"
                             >
                               Classement
+                            </Link>
+                            <Link
+                              href="/compte"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              role="menuitem"
+                            >
+                              Compte
                             </Link>
                             <button
                               onClick={() => signOut()}
@@ -255,7 +261,7 @@ function Nav() {
         leaveTo="opacity-0 scale-95"
       >
         {(ref) => (
-          <div className="md:hidden" id="mobile-menu">
+          <div className="md:hidden flex justify-center" id="mobile-menu">
             <div
               ref={(el) => (mobileMenuRef.current = el)}
               className="px-2 pt-2 pb-3 space-y-1 sm:px-3"
@@ -264,7 +270,7 @@ function Nav() {
                 href={"/"}
                 className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
               >
-                <div className="relative flex items-center justify-center"> {/* Ajout de la classe flex items-center ici */}
+                <div className="relative flex items-center justify-center"> 
                   <Image
                     src="/bouton.svg"
                     alt="Bouton"
@@ -278,7 +284,7 @@ function Nav() {
                 href="/about"
                 className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
               >
-                <div className="relative flex items-center justify-center"> {/* Ajout de la classe flex items-center ici */}
+                <div className="relative flex items-center justify-center"> 
                   <Image
                     src="/bouton.svg"
                     alt="Bouton"
@@ -298,7 +304,7 @@ function Nav() {
                         className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
                         onClick={() => setIsOpen(!isOpen)}
                       >
-                        <div className="relative">
+                        <div className="relative flex items-center justify-center">
                           <Image
                             src="/bouton.svg"
                             alt="Bouton"
@@ -306,7 +312,7 @@ function Nav() {
                             height={60}
                           />
                           <span className="btn-text">
-                            Welcome, {username}!
+                            {username}
                           </span>
                         </div>
                       </span>
@@ -321,8 +327,7 @@ function Nav() {
                       >
                         {(ref) => (
                           <div
-                            ref={ref}
-                            className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                            className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 "
                             role="menu"
                             aria-orientation="vertical"
                             aria-labelledby="user-menu"
@@ -362,6 +367,13 @@ function Nav() {
                                 role="menuitem"
                               >
                                 Classement
+                              </Link>
+                              <Link
+                                href="/compte"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                role="menuitem"
+                              >
+                                Compte
                               </Link>
                               <button
                                 onClick={() => signOut()}
@@ -408,7 +420,7 @@ function Nav() {
                     </>
                   )}
                 </>
-              )} propos
+              )}
             </div>
           </div>
         )}

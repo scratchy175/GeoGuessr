@@ -44,7 +44,7 @@ export default function Compte() {
           alt="Image par dessus"
           className="w-full h-full object-contain"
         />
-      </div>
+      
 
       {/* Nom d'utilisateur */}
       <div className="absolute top-1/2 transform -translate-y-1/4 text-8xl text-center"
@@ -63,7 +63,7 @@ export default function Compte() {
         style={{
           position: 'absolute',
           bottom: '20%',
-          left: '28%',
+          left: '21%',
           width: '10%',
           zIndex: 10, // Assure que ce bouton est en avant
         }}
@@ -84,6 +84,7 @@ export default function Compte() {
       >
         Changer de mot de passe
       </button>
+    </div>
     </div>
   );
 }
