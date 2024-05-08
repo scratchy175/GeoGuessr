@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { getSession } from 'next-auth/react';
 import { getFinishGames } from '@/services/getFinishGames';
-// import { getBestScore } from '@/services/getBestScore';
-// import { getAverageScore } from '@/services/getAverageScore';
+import { getBestScore } from '@/services/getBestScore';
+import { getAverageScore } from '@/services/getAverageScore';
 
 export default function Profile() {
   const [session, setSession] = useState(null);
@@ -24,13 +24,11 @@ export default function Profile() {
         const { result: finishedGames } = finishedGamesResponse;
         setNumberOfGames(finishedGames);
 
-        // const bestScoreResponse = await getBestScore(session.user.id);
-        // const { maxScore } = bestScoreResponse;
-        // setBestScore(maxScore);
+        const bestScoreResponse = await getBestScore(session.user.id);
+        setBestScore(Math.round(bestScoreResponse._max.score));
 
-        // const averageScoreResponse = await getAverageScore(session.user.id);
-        // const { average } = averageScoreResponse;
-        // setAverageScore(average);
+        const averageScoreResponse = await getAverageScore(session.user.id);
+        setAverageScore(Math.round(averageScoreResponse._avg.score));
       }
     };
 

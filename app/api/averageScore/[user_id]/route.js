@@ -6,7 +6,7 @@ export async function GET(request, context) {
         const { user_id } = context.params;
 
         if (!user_id) {
-            return NextResponse.text("User ID is required", { status: 400 });
+            return NextResponse.json("User ID is required", { status: 400 });
         }
 
         const userIdInt = parseInt(user_id, 10);
@@ -17,19 +17,19 @@ export async function GET(request, context) {
             },
             where: {
                 game: {
-                    user_id: user_id, // Ensure the rounds are linked to games played by the user
+                    user_id: userIdInt, // Ensure the rounds are linked to games played by the user
                     state: "completed" // Optionally, consider only completed games
                 }
             }
         });
 
         if (!averageScore) {
-            return NextResponse.text("No completed games found for the user", { status: 404 });
+            return NextResponse.json("No completed games found for the user", { status: 404 });
         }
 
-        return NextResponse.text(averageScore);
+        return NextResponse.json(averageScore);
     } catch (error) {
         console.error("Error getting average score:", error);
-        return NextResponse.text("Error getting average score", { status: 500 });
+        return NextResponse.json("Error getting average score", { status: 500 });
     }
 }
