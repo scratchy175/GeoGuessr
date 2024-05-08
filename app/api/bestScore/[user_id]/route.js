@@ -20,7 +20,6 @@ export async function GET(request, context) {
                 }
             }
         });
-        console.log("maxScore", maxScore);
 
 
         if (!maxScore) {
