@@ -111,6 +111,7 @@ const App = () => {
       >
     <p>Démarrer l&apos;exploration</p>
       </button>
+      </div>
 
       {
         isPopupVisible && (
@@ -123,7 +124,6 @@ const App = () => {
           />
         )
       }
-      </div>
     </div>
   );
 }
