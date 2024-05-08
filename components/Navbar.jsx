@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Transition } from "@headlessui/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +10,7 @@ import { signOut, getSession } from "next-auth/react";
 import styles from "./styles.css";
 
 function Nav() {
+  const router = useRouter(); 
   const [isOpen, setIsOpen] = useState(false);
   const mobileMenuRef = useRef(null);
   const [session, setSession] = useState(null);
@@ -30,6 +32,17 @@ function Nav() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      setUsername(session.user.username);
+    }
+  }, [session]);
+
+  const handleSignOut = async () => {
+    await signOut(); // Déconnexion avec NextAuth
+    router.push('/login'); // Redirection vers la page de connexion
+  };
 
   return (
     <nav className="bg-transparent fixed top-0 left-0 w-full z-50">
@@ -159,12 +172,13 @@ function Nav() {
                               Compte
                             </Link>
                             <button
-                              onClick={() => signOut()}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              role="menuitem"
-                            >
-                              Logout
-                            </button>
+                             onClick={handleSignOut}
+                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                             role="menuitem"
+                                                >
+                             Logout
+                             </button>
+                            
                           </div>
                         </div>
                       )}
@@ -376,12 +390,12 @@ function Nav() {
                                 Compte
                               </Link>
                               <button
-                                onClick={() => signOut()}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                role="menuitem"
-                              >
-                                Logout
-                              </button>
+                             onClick={handleSignOut}
+                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                             role="menuitem"
+                                                >
+                             Logout
+                             </button>
                             </div>
                           </div>
                         )}
