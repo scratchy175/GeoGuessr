@@ -10,10 +10,10 @@ const GameInfoBar = ({ round, totalScore, timeLeft, setTimeLeft, handleTimerComp
       <div className="bg-yellow-800 p-2 rounded-lg shadow-md flex justify-around items-center space-x-4">
         <div className="text-white">
           <div className="text-xs uppercase text-stone-800 font-bold">Carte</div>
-          <div className="text-lg font-bold">World</div>
+          <div className="text-lg font-bold">Monde</div>
         </div>
         <div className="text-white">
-          <div className="text-xs uppercase text-stone-800 font-bold">Round</div>
+          <div className="text-xs uppercase text-stone-800 font-bold">Tour</div>
           <div className="text-lg font-bold">{round}/5</div>
         </div>
         <div className="text-white">

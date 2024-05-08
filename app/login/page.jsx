@@ -64,7 +64,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-600">
-              Email
+            Adresse email
             </label>
             <input
               type="email"
@@ -107,9 +107,9 @@ const Login = () => {
         </form>
         <div className="mt-4 text-center">
           <p className="text-gray-600">
-            Dont have an account?{' '}
+          Vous n&apos;avez pas de compte ?{' '}
             <Link href="/signup" className="text-indigo-500">
-              Sign up
+              S&apos;inscrire
             </Link>
           </p>
         </div>

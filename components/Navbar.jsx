@@ -71,7 +71,7 @@ function Nav() {
                       width={120}
                       height={60}
                     />
-                    <span className="btn-text">Home</span>
+                    <span className="btn-text">Accueil</span>
                   </div>
                 </Link>
                 <Link
@@ -83,9 +83,9 @@ function Nav() {
                       src="/bouton.svg"
                       alt="Bouton"
                       width={120}
-                      height={60}
+                      height={70}
                     />
-                    <span className="btn-text">About</span>
+                    <span className="btn-text ">Àpropos</span>
                   </div>
                 </Link>
               </div>
@@ -176,7 +176,7 @@ function Nav() {
                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                              role="menuitem"
                                                 >
-                             Logout
+                             Se déconnecter
                              </button>
                             
                           </div>
@@ -197,7 +197,7 @@ function Nav() {
                           width={120}
                           height={60}
                         />
-                        <span className="btn-text">Login</span>
+                        <span className="btn-text">Connexion</span>
                       </div>
                     </Link>
                     <Link
@@ -211,7 +211,7 @@ function Nav() {
                           width={120}
                           height={60}
                         />
-                        <span className="btn-text">Signup</span>
+                        <span className="btn-text">S&apos;inscrire</span>
                       </div>
                     </Link>
                   </>
@@ -291,7 +291,7 @@ function Nav() {
                     width={120}
                     height={60}
                   />
-                  <span className="btn-text">Home</span>
+                  <span className="btn-text">Accueil</span>
                 </div>
               </Link>
               <Link
@@ -305,7 +305,7 @@ function Nav() {
                     width={120}
                     height={60}
                   />
-                  <span className="btn-text">About</span>
+                  <span className="btn-text">Àpropos</span>
                 </div>
               </Link>
               {isLoading ? (
@@ -394,7 +394,7 @@ function Nav() {
                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                              role="menuitem"
                                                 >
-                             Logout
+                             Se déconnecter
                              </button>
                             </div>
                           </div>
@@ -414,7 +414,7 @@ function Nav() {
                             width={120}
                             height={60}
                           />
-                          <span className="btn-text">Login</span>
+                          <span className="btn-text">Se connecter</span>
                         </div>
                       </Link>
                       <Link
@@ -428,7 +428,7 @@ function Nav() {
                             width={120}
                             height={60}
                           />
-                          <span className="btn-text">Signup</span>
+                          <span className="btn-text">S&apos;inscrire</span>
                         </div>
                       </Link>
                     </>

@@ -24,11 +24,11 @@ const GameParametersPopup = ({ onClose, onConfirm }) => {
   className="rounded-lg p-5"
   style={popupStyle}
 >
-        <h2 className='text-black'>Select Game Parameters</h2>
+        <h2 className='text-black'>Sélectionnez les paramètres du jeu</h2>
 
         <div className='space-x-48 flex flex-row'>
-          <button onClick={onClose} className='text-black' >Cancel</button>
-          <button onClick={onConfirm} className='text-black'>Start Game</button>
+          <button onClick={onClose} className='text-black' >Annuler</button>
+          <button onClick={onConfirm} className='text-black'>Démarrer le jeu</button>
         </div>
       </div>
     </div>

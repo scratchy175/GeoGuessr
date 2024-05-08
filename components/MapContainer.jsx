@@ -221,7 +221,7 @@ const MapControls = ({ mapRef, mapContainerRef, handleGuess, guessB }) => {
                     opacity: !guessB ? 0.5 : (isHovered ? 1 : 0.5),
                 }}
                 className="h-10 w-full py-2 mt-2 text-lg cursor-pointer rounded-full text-white font-bold uppercase shadow-md transition ease-in-out delay-150 bg-yellow-900 hover:scale-110 duration-75 disabled:bg-black disabled:hover:scale-100 disabled:opacity-50">
-                Guess
+                Deviner
             </button>
 
         </div>
