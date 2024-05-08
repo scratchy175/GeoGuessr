@@ -1,14 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { getSession } from 'next-auth/react';
-import axios from 'axios';
+import { getFinishGames } from '@/services/getFinishGames';
+import { getBestScore } from '@/services/getBestScore';
+import { getAverageScore } from '@/services/getAverageScore';
 
 export default function Profile() {
   const [session, setSession] = useState(null);
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [id, setUserId] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [numberOfGames, setNumberOfGames] = useState(0);
   const [bestScore, setBestScore] = useState(0);
   const [averageScore, setAverageScore] = useState(0);
@@ -17,18 +16,26 @@ export default function Profile() {
     const fetchData = async () => {
       const session = await getSession();
       setSession(session);
-  
+
       if (session) {
         setUsername(session.user.username);
-        setEmail(session.user.email);
-        setUserId(session.user.id);
-      } else {
+
+        const finishedGamesResponse = await getFinishGames(session.user.id);
+        const { result: finishedGames } = finishedGamesResponse;
+        setNumberOfGames(finishedGames);
+
+        // const bestScoreResponse = await getBestScore(session.user.id);
+        // const { maxScore } = bestScoreResponse;
+        // setBestScore(maxScore);
+
+        // const averageScoreResponse = await getAverageScore(session.user.id);
+        // const { average } = averageScoreResponse;
+        // setAverageScore(average);
       }
     };
-  
+
     fetchData();
   }, []);
-
   return (
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
       {/* Fond */}

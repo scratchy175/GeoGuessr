@@ -1,8 +1,30 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { getTotalGames } from '@/services/getTotalGames';
+import { getNumberAccounts } from '@/services/getNumberAccounts';
 
 const App = () => {
+  const [totalGames, setTotalGames] = useState(0);
+  const [numberAccounts, setNumberAccounts] = useState(0);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const totalGamesData = await getTotalGames();
+        const { result } = totalGamesData; // Extraire le total des parties jouées
+        setTotalGames(result);
+
+        const numberAccountsData = await getNumberAccounts();
+        const { result: numberAccounts } = numberAccountsData; // Extraire le nombre d'utilisateurs
+        setNumberAccounts(numberAccounts);
+
+      } catch (error) {
+        console.error("Error fetching total games:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
       {/* Fond */}
@@ -39,7 +61,7 @@ const App = () => {
             left: '9%',
             width: '25%',
           }}>
-          <p className="creme font-bold">0</p>
+          <p className="creme font-bold">{totalGames}</p>
         </div>
       </div>
 
@@ -61,7 +83,7 @@ const App = () => {
             left: '39%',
             width: '20%',
           }}>
-          <p className="creme font-bold">0</p>
+          <p className="creme font-bold">{numberAccounts}</p>
         </div>
       </div>
 
