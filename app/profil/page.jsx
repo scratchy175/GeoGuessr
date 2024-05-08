@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { getSession } from 'next-auth/react';
 import { getFinishGames } from '@/services/getFinishGames';
-import { getBestScore } from '@/services/getBestScore';
-import { getAverageScore } from '@/services/getAverageScore';
+// import { getBestScore } from '@/services/getBestScore';
+// import { getAverageScore } from '@/services/getAverageScore';
 
 export default function Profile() {
   const [session, setSession] = useState(null);
