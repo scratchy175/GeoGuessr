@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useGameActions } from "@/hooks/useGameActions";
+import { getFinishGames } from '@/services/getFinishGames';
 
 const popupStyle = {
   backgroundImage: "url('/main/fondvierge.png')",
@@ -18,6 +19,8 @@ const popupStyle = {
 };
 
 const GameParametersPopup = ({ onClose, onConfirm }) => {
+  console.log(getFinishGames(1)); // je teste avec un user_id en dur
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div 
