@@ -86,28 +86,6 @@ const App = () => {
           <p className="creme font-bold">{numberAccounts}</p>
         </div>
       </div>
-
-      {/* Score moyen */}
-      <div
-        className="absolute"
-        style={{
-          right: '5%',
-          top: '45%',
-          transform: 'translateY(-45%)',
-          width: '90%'
-        }}
-      >
-        <img src="/statistiques/scoremoyen.svg" alt="Globe" style={{ width: '100%' }} />
-        <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-3xl text-center sm:text-md md:text-lg lg:text-xl xl:text-4xl 2xl:text-5xl"
-          style={{
-            position: 'absolute',
-            top: '45%',
-            left: '66%',
-            width: '25%',
-          }}>
-          <p className="creme font-bold">0</p>
-        </div>
-      </div>
     </div>
   );
 }
