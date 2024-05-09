@@ -2,14 +2,23 @@
 import React, { useEffect, useState } from "react";
 import { getLeaderboardGames } from "@/services/getLeaderboardGames";
 const Leaderboard = () => {
-  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [gamesLeaderboard, setGamesLeaderboard] = useState([]);
+  const [bestScoreLeaderboard, setBestScoreLeaderboard] = useState([]);
+  const [avgScoreLeaderboard, setAvgScoreLeaderboard] = useState([]);
 
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
-        const data = await getLeaderboardGames();
-        setLeaderboardData(data.topUsers);
-
+        
+        const response = await getLeaderboardGames();  // Ensure this API call is setup to fetch all necessary data
+        console.log(response);
+        console.log(avgScoreLeaderboard);
+        if (response) {
+          setGamesLeaderboard(response.games);
+          setBestScoreLeaderboard(response.bestScore);
+          setAvgScoreLeaderboard(response.avgScore);
+          
+        }
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
       }
@@ -56,18 +65,14 @@ const Leaderboard = () => {
             left: '7%', // Ajustement pour positionner le texte à gauche
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
-          {/* Texte du classement */}
-          <p className="or-color font-bold">1 - Bientot disponible</p>
-          <p className="argent-color font-bold">2 - Bientot disponible</p>
-          <p className="bronze-color font-bold">3 - Bientot disponible</p>
-          <p className="text-custom-color">4 - Bientot disponible</p>
-          <p className="text-custom-color">5 - Bientot disponible</p>
-          <p className="text-custom-color">6 - Bientot disponible</p>
-          <p className="text-custom-color">7 - Bientot disponible</p>
-          <p className="text-custom-color">8 - Bientot disponible</p>
-          <p className="text-custom-color">9 - Bientot disponible</p>
-          <p className="text-custom-color">10 - Bientot disponible</p>
-          <p className="text-custom-color font-bold">Vous - Bientot disponible</p>
+          {avgScoreLeaderboard.map((user, index) => (
+          <p key={user.id} style={{
+            color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+            fontWeight: index < 3 ? 'bold' : 'normal'
+          }}>
+            {index + 1} - {user.username}: {parseFloat(user.average_score).toFixed(2)}
+          </p>
+        ))}
         </div>
       </div>
 
@@ -89,18 +94,15 @@ const Leaderboard = () => {
             left: '37%', // Ajustement pour positionner le texte au centre
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
-          {/* Texte du classement */}
-          <p className="or-color font-bold">1 - Bientot disponible</p>
-          <p className="argent-color font-bold">2 - Bientot disponible</p>
-          <p className="bronze-color font-bold">3 - Bientot disponible</p>
-          <p className="text-custom-color">4 - Bientot disponible</p>
-          <p className="text-custom-color">5 - Bientot disponible</p>
-          <p className="text-custom-color">6 - Bientot disponible</p>
-          <p className="text-custom-color">7 - Bientot disponible</p>
-          <p className="text-custom-color">8 - Bientot disponible</p>
-          <p className="text-custom-color">9 - Bientot disponible</p>
-          <p className="text-custom-color">10 - Bientot disponible</p>
-          <p className="text-custom-color font-bold">Vous - Bientot disponible</p>
+          {bestScoreLeaderboard.map((user, index) => (
+            <p key={user.id} style={{
+              color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+              fontWeight: index < 3 ? 'bold' : 'normal'
+            }} className="text-xs md:text-sm lg:text-md xl:text-xl">
+              {index + 1} - {user.username} : {user.highest_score}
+            </p>
+          ))}
+          
         </div>
       </div>
 
@@ -123,13 +125,16 @@ const Leaderboard = () => {
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
           {/* Texte du classement */}
-  <ul>
-  {leaderboardData.map((user, index) => (
-    <li key={index} style={{ color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'black', fontWeight: index < 3 ? 'bold' : 'normal' }}>
-      Id {user.user_id} : {user._count.state} parties
-    </li>
-  ))}
-  </ul>
+
+  {gamesLeaderboard.map((user, index) => (
+            <p key={user.id} style={{
+              color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+              fontWeight: index < 3 ? 'bold' : 'normal'
+            }} className="text-xs md:text-sm lg:text-md xl:text-xl">
+              {index + 1} - {user.username} : {user.games_played}
+            </p>
+          ))}
+
         </div>
       </div>
     </div>
