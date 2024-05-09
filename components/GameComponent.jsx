@@ -55,13 +55,15 @@ const GameComponent = ({ params }) => {
 
   const [endGame, setEndGame] = useState(false);
 
-  const initialTime = 100; // 300 = 5 minutes in seconds
-  const [timeLeft, setTimeLeft] = useState(initialTime);
+  const gameTime = sessionStorage.getItem('gameTime');
+
+  const [timeLeft, setTimeLeft] = useState(gameTime);
 
 
 
 
-  const resetTimer = (newTime = initialTime) => {
+
+  const resetTimer = (newTime = gameTime) => {
     setTimeLeft(newTime);
   };
 
@@ -103,7 +105,6 @@ const GameComponent = ({ params }) => {
         setTimeout(() => {
           initializeMarker()
         }, 1000);
-
 
 
         // Initialisation du panorama Street View.
@@ -219,7 +220,7 @@ const GameComponent = ({ params }) => {
     }, 100);
     const mapPointString = `(${initialStreetViewLocation.lat}, ${initialStreetViewLocation.lng})`;
     const userPointString = `(${window.marker?.position.lat}, ${window.marker?.position.lng})`;
-    addRound(params.id, round.current, score.current, distanceG.current, initialTime - timeLeft, userPointString, mapPointString)
+    addRound(params.id, round.current, score.current, distanceG.current, gameTime - timeLeft, userPointString, mapPointString)
 
   }, [initialStreetViewLocation, moveMapAndResize]);
 

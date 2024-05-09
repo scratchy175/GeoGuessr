@@ -17,7 +17,21 @@ const popupStyle = {
   boxSizing: 'border-box',
 };
 
-const GameParametersPopup = ({ onClose, onConfirm }) => {
+const GameParametersPopup = ({ onTimeChange, onClose, onConfirm }) => {
+  const [seconds, setSeconds] = useState(300);
+  const handleSliderChange = (event) => {
+    setSeconds(event.target.value);
+    onTimeChange(event.target.value);
+  };
+
+  // Function to format the seconds into a minute:second format
+  const formatTime = (totalSeconds) => {
+    if (totalSeconds === '0') return 'Unlimited';
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+    return `${minutes} min ${remainingSeconds} sec`;
+  };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div 
@@ -25,6 +39,29 @@ const GameParametersPopup = ({ onClose, onConfirm }) => {
   style={popupStyle}
 >
         <h2 className='text-black'>Select Game Parameters</h2>
+        
+        <div className="p-4">
+      <label htmlFor="time-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">
+        Game Time
+      </label>
+      <div className="relative w-full"> {/* Container for the slider with fixed width */}
+        <input
+          id="time-range"
+          type="range"
+          min="0"
+          max="600"
+          step="10"
+          value={seconds}
+          onChange={handleSliderChange}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+        />
+        <div className="absolute w-full text-center mt-2 text-sm font-medium text-gray-900 dark:text-black">
+          {formatTime(seconds)}
+        </div>
+      </div>
+    </div>
+
+
 
         <div className='space-x-48 flex flex-row'>
           <button onClick={onClose} className='text-black' >Cancel</button>
@@ -40,6 +77,7 @@ const GameParametersPopup = ({ onClose, onConfirm }) => {
 const App = () => {
   const { handlePlayClick } = useGameActions();
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [gameTime, setGameTime] = useState(0);
 
   useEffect(() => {
     // Prevent scrolling when the app is fullscreen.
@@ -117,9 +155,10 @@ const App = () => {
       {
         isPopupVisible && (
           <GameParametersPopup
+            onTimeChange={setGameTime}
             onClose={() => setIsPopupVisible(false)}
             onConfirm={() => {
-              handlePlayClick();
+              handlePlayClick(gameTime.toString()); // Ensure gameTime is passed as a string
               setIsPopupVisible(false);
             }}
           />
