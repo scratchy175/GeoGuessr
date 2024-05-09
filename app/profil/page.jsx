@@ -8,9 +8,9 @@ import { getAverageScore } from '@/services/getAverageScore';
 export default function Profile() {
   const [session, setSession] = useState(null);
   const [username, setUsername] = useState("");
-  const [numberOfGames, setNumberOfGames] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [averageScore, setAverageScore] = useState(0);
+  const [numberOfGames, setNumberOfGames] = useState("Chargement");
+  const [bestScore, setBestScore] = useState("Chargement");
+  const [averageScore, setAverageScore] = useState("Chargement");
 
   useEffect(() => {
     const fetchData = async () => {

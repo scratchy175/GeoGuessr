@@ -69,7 +69,7 @@ const Leaderboard = () => {
           <p key={user.id} style={{
             color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
             fontWeight: index < 3 ? 'bold' : 'normal'
-          }}>
+          }} className="text-xs md:text-sm lg:text-md xl:text-xl">
             {index + 1} - {user.username}: {parseFloat(user.average_score).toFixed(2)}
           </p>
         ))}
