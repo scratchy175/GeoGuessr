@@ -64,8 +64,8 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm }) => {
 
 
         <div className='space-x-48 flex flex-row'>
-          <button onClick={onClose} className='text-black' >Cancel</button>
-          <button onClick={onConfirm} className='text-black'>Start Game</button>
+          <button onClick={onClose} className='text-black' >Annuler</button>
+          <button onClick={onConfirm} className='text-black'>Démarrer le jeu</button>
         </div>
       </div>
     </div>
@@ -137,20 +137,19 @@ const App = () => {
         }}
       >
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
-      </div>
-
+        
       <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
         style={{
+          bottom: '26%',
+          left: '-21%',
           position: 'absolute',
-          bottom: '20%',
-          left: '33%',
-          width: '10%',
         }}
         onClick={showParametersPopup}
       >
     <p>Démarrer l&apos;exploration</p>
       </button>
+      </div>
 
       {
         isPopupVisible && (

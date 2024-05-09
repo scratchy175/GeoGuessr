@@ -58,7 +58,7 @@ export default function Signup() {
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <div className="mb-4">
             <label htmlFor="name" className="block text-gray-600">
-              Username
+            Nom d&apos;utilisateur
             </label>
             <input
               type="text"
@@ -72,7 +72,7 @@ export default function Signup() {
           </div>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-600">
-              Email
+            Adresse email
             </label>
             <input
               type="email"
@@ -86,7 +86,7 @@ export default function Signup() {
           </div>
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-600">
-              Password
+              Mot de passe
             </label>
             <input
               type="password"
@@ -106,17 +106,17 @@ export default function Signup() {
                 defaultChecked
               />
               <span className="ml-2 text-gray-600">
-                I agree to the{" "}
+                je suis d&apos;accord avec le{" "}
                 <a href="#" className="text-blue-500">
-                  Terms of Service
+                 Conditions d&apos;utilisation
                 </a>
               </span>
             </label>
             <p className="text-gray-600">
-              Already Have An Account?{" "}
+            Vous avez déjà un compte?{" "}
               {/* Lien vers la page de connexion */}
               <Link href="/login" className="text-indigo-500">
-                Login
+                Connexion
               </Link>
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function Signup() {
               type="submit"
               className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-300"
             >
-              SignUp
+              S&apos;inscrire
             </button>
           </div>
         </form>

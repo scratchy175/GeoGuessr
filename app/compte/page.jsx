@@ -44,7 +44,7 @@ export default function Compte() {
           alt="Image par dessus"
           className="w-full h-full object-contain"
         />
-      </div>
+      
 
       {/* Nom d'utilisateur */}
       <div className="absolute top-1/2 transform -translate-y-1/4 text-8xl text-center"
@@ -58,32 +58,45 @@ export default function Compte() {
       </div>  
 
       {/* Bouton pour changer de pseudo */}
-      <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
-        style={{
-          position: 'absolute',
-          bottom: '20%',
-          left: '28%',
-          width: '10%',
-          zIndex: 10, // Assure que ce bouton est en avant
-        }}
-      >
-        Changer de pseudo
-      </button>
+      <a
+      href="/edit-profile"
+      className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+      style={{
+        position: 'absolute',
+        bottom: '20%',
+        left: '28%',
+        width: '10%',
+        zIndex: 10, // Assure que ce bouton est en avant
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textDecoration: 'none', // Supprime le soulignement par défaut du lien
+      }}
+    >
+      Changer de pseudo
+    </a>
 
       {/* Deuxième bouton pour changer de mot de passe */}
-      <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
-        style={{
-          position: 'absolute',
-          bottom: '20%',
-          left: '63%',
-          width: '10%',
-          zIndex: 10, // Assure que ce bouton est en avant
-        }}
-      >
-        Changer de mot de passe
-      </button>
+      <a
+  href="/edit-pass"
+  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full shadow-md"
+  style={{
+    position: 'absolute',
+    bottom: '20%',
+    left: '63%',
+    width: '10%',
+    zIndex: 10, // Assure que ce bouton est en avant
+    textDecoration: 'none', // Supprime le soulignement par défaut du lien
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+  Changer le mot de passe
+</a>
+
+    </div>
     </div>
   );
 }

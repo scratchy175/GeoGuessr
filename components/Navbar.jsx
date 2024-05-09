@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Transition } from "@headlessui/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +10,7 @@ import { signOut, getSession } from "next-auth/react";
 import styles from "./styles.css";
 
 function Nav() {
+  const router = useRouter(); 
   const [isOpen, setIsOpen] = useState(false);
   const mobileMenuRef = useRef(null);
   const [session, setSession] = useState(null);
@@ -30,6 +32,17 @@ function Nav() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      setUsername(session.user.username);
+    }
+  }, [session]);
+
+  const handleSignOut = async () => {
+    await signOut(); // Déconnexion avec NextAuth
+    router.push('/login'); // Redirection vers la page de connexion
+  };
 
   return (
     <nav className="bg-transparent fixed top-0 left-0 w-full z-50">
@@ -58,7 +71,7 @@ function Nav() {
                       width={120}
                       height={60}
                     />
-                    <span className="btn-text">Home</span>
+                    <span className="btn-text">Accueil</span>
                   </div>
                 </Link>
                 <Link
@@ -70,9 +83,9 @@ function Nav() {
                       src="/bouton.svg"
                       alt="Bouton"
                       width={120}
-                      height={60}
+                      height={70}
                     />
-                    <span className="btn-text">About</span>
+                    <span className="btn-text ">Àpropos</span>
                   </div>
                 </Link>
               </div>
@@ -110,7 +123,6 @@ function Nav() {
                     >
                       {(ref) => (
                         <div
-                          ref={ref}
                           className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
                           role="menu"
                           aria-orientation="vertical"
@@ -152,13 +164,21 @@ function Nav() {
                             >
                               Classement
                             </Link>
-                            <button
-                              onClick={() => signOut()}
+                            <Link
+                              href="/compte"
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               role="menuitem"
                             >
-                              Logout
-                            </button>
+                              Compte
+                            </Link>
+                            <button
+                             onClick={handleSignOut}
+                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                             role="menuitem"
+                                                >
+                             Se déconnecter
+                             </button>
+                            
                           </div>
                         </div>
                       )}
@@ -177,7 +197,7 @@ function Nav() {
                           width={120}
                           height={60}
                         />
-                        <span className="btn-text">Login</span>
+                        <span className="btn-text">Connexion</span>
                       </div>
                     </Link>
                     <Link
@@ -191,7 +211,7 @@ function Nav() {
                           width={120}
                           height={60}
                         />
-                        <span className="btn-text">Signup</span>
+                        <span className="btn-text">S&apos;inscrire</span>
                       </div>
                     </Link>
                   </>
@@ -255,7 +275,7 @@ function Nav() {
         leaveTo="opacity-0 scale-95"
       >
         {(ref) => (
-          <div className="md:hidden" id="mobile-menu">
+          <div className="md:hidden flex justify-center" id="mobile-menu">
             <div
               ref={(el) => (mobileMenuRef.current = el)}
               className="px-2 pt-2 pb-3 space-y-1 sm:px-3"
@@ -264,28 +284,28 @@ function Nav() {
                 href={"/"}
                 className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
               >
-                <div className="relative flex items-center justify-center"> {/* Ajout de la classe flex items-center ici */}
+                <div className="relative flex items-center justify-center"> 
                   <Image
                     src="/bouton.svg"
                     alt="Bouton"
                     width={120}
                     height={60}
                   />
-                  <span className="btn-text">Home</span>
+                  <span className="btn-text">Accueil</span>
                 </div>
               </Link>
               <Link
                 href="/about"
                 className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
               >
-                <div className="relative flex items-center justify-center"> {/* Ajout de la classe flex items-center ici */}
+                <div className="relative flex items-center justify-center"> 
                   <Image
                     src="/bouton.svg"
                     alt="Bouton"
                     width={120}
                     height={60}
                   />
-                  <span className="btn-text">About</span>
+                  <span className="btn-text">Àpropos</span>
                 </div>
               </Link>
               {isLoading ? (
@@ -298,7 +318,7 @@ function Nav() {
                         className={`custom-btn hover:shadow-indigo-500/100 hover:shadow-lg text-gray-300 hover:bg-indigo-500/40 block px-3 py-2 rounded-md text-base font-medium ${styles["custom-btn"]}`}
                         onClick={() => setIsOpen(!isOpen)}
                       >
-                        <div className="relative">
+                        <div className="relative flex items-center justify-center">
                           <Image
                             src="/bouton.svg"
                             alt="Bouton"
@@ -306,7 +326,7 @@ function Nav() {
                             height={60}
                           />
                           <span className="btn-text">
-                            Welcome, {username}!
+                            {username}
                           </span>
                         </div>
                       </span>
@@ -321,8 +341,7 @@ function Nav() {
                       >
                         {(ref) => (
                           <div
-                            ref={ref}
-                            className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                            className="md:absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 "
                             role="menu"
                             aria-orientation="vertical"
                             aria-labelledby="user-menu"
@@ -363,13 +382,20 @@ function Nav() {
                               >
                                 Classement
                               </Link>
-                              <button
-                                onClick={() => signOut()}
+                              <Link
+                                href="/compte"
                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem"
                               >
-                                Logout
-                              </button>
+                                Compte
+                              </Link>
+                              <button
+                             onClick={handleSignOut}
+                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                             role="menuitem"
+                                                >
+                             Se déconnecter
+                             </button>
                             </div>
                           </div>
                         )}
@@ -388,7 +414,7 @@ function Nav() {
                             width={120}
                             height={60}
                           />
-                          <span className="btn-text">Login</span>
+                          <span className="btn-text">Se connecter</span>
                         </div>
                       </Link>
                       <Link
@@ -402,13 +428,13 @@ function Nav() {
                             width={120}
                             height={60}
                           />
-                          <span className="btn-text">Signup</span>
+                          <span className="btn-text">S&apos;inscrire</span>
                         </div>
                       </Link>
                     </>
                   )}
                 </>
-              )} propos
+              )}
             </div>
           </div>
         )}

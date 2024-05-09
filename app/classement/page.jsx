@@ -1,7 +1,32 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import { getLeaderboardGames } from "@/services/getLeaderboardGames";
+const Leaderboard = () => {
+  const [gamesLeaderboard, setGamesLeaderboard] = useState([]);
+  const [bestScoreLeaderboard, setBestScoreLeaderboard] = useState([]);
+  const [avgScoreLeaderboard, setAvgScoreLeaderboard] = useState([]);
 
-const App = () => {
+  useEffect(() => {
+    const fetchLeaderboardData = async () => {
+      try {
+        
+        const response = await getLeaderboardGames();  // Ensure this API call is setup to fetch all necessary data
+        console.log(response);
+        console.log(avgScoreLeaderboard);
+        if (response) {
+          setGamesLeaderboard(response.games);
+          setBestScoreLeaderboard(response.bestScore);
+          setAvgScoreLeaderboard(response.avgScore);
+          
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+      }
+    };
+
+    fetchLeaderboardData();
+  }, []);
+
   return (
     <div className="relative w-screen h-screen overflow-hidden flex justify-center items-center">
       {/* Fond */}
@@ -40,18 +65,14 @@ const App = () => {
             left: '7%', // Ajustement pour positionner le texte à gauche
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
-          {/* Texte du classement */}
-          <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="text-custom-color">4 - Quatrième</p>
-          <p className="text-custom-color">5 - Cinquième</p>
-          <p className="text-custom-color">6 - Sixième</p>
-          <p className="text-custom-color">7 - Septième</p>
-          <p className="text-custom-color">8 - Huitième</p>
-          <p className="text-custom-color">9 - Neuvième</p>
-          <p className="text-custom-color">10 - Dixième</p>
-          <p className="text-custom-color font-bold">Vous - Seizième</p>
+          {avgScoreLeaderboard.map((user, index) => (
+          <p key={user.id} style={{
+            color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+            fontWeight: index < 3 ? 'bold' : 'normal'
+          }}>
+            {index + 1} - {user.username}: {parseFloat(user.average_score).toFixed(2)}
+          </p>
+        ))}
         </div>
       </div>
 
@@ -73,18 +94,15 @@ const App = () => {
             left: '37%', // Ajustement pour positionner le texte au centre
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
-          {/* Texte du classement */}
-          <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="text-custom-color">4 - Quatrième</p>
-          <p className="text-custom-color">5 - Cinquième</p>
-          <p className="text-custom-color">6 - Sixième</p>
-          <p className="text-custom-color">7 - Septième</p>
-          <p className="text-custom-color">8 - Huitième</p>
-          <p className="text-custom-color">9 - Neuvième</p>
-          <p className="text-custom-color">10 - Dixième</p>
-          <p className="text-custom-color font-bold">Vous - Seizième</p>
+          {bestScoreLeaderboard.map((user, index) => (
+            <p key={user.id} style={{
+              color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+              fontWeight: index < 3 ? 'bold' : 'normal'
+            }} className="text-xs md:text-sm lg:text-md xl:text-xl">
+              {index + 1} - {user.username} : {user.highest_score}
+            </p>
+          ))}
+          
         </div>
       </div>
 
@@ -102,26 +120,32 @@ const App = () => {
         <div className="absolute top-1/2 transform -translate-y-1/4 text-white text-3xl text-center sm:text-xs md:text-sm lg:text-md xl:text-xl 2xl:text-3xl"
           style={{
             position: 'absolute',
-            top: '46%', // Ajustement pour positionner le texte au-dessus de l'image
+            top: '43%', // Ajustement pour positionner le texte au-dessus de l'image
             left: '69%', // Ajustement pour positionner le texte au centre
             width: '25%', // Ajustement de la largeur pour la rendre responsive
           }}>
           {/* Texte du classement */}
-          <p className="or-color font-bold">1 - Premier</p>
-          <p className="argent-color font-bold">2 - Deuxième</p>
-          <p className="bronze-color font-bold">3 - Troisième</p>
-          <p className="text-custom-color">4 - Quatrième</p>
-          <p className="text-custom-color">5 - Cinquième</p>
-          <p className="text-custom-color">6 - Sixième</p>
-          <p className="text-custom-color">7 - Septième</p>
-          <p className="text-custom-color">8 - Huitième</p>
-          <p className="text-custom-color">9 - Neuvième</p>
-          <p className="text-custom-color">10 - Dixième</p>
-          <p className="text-custom-color font-bold">Vous - Seizième</p>
+
+  {gamesLeaderboard.map((user, index) => (
+            <p key={user.id} style={{
+              color: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'black',
+              fontWeight: index < 3 ? 'bold' : 'normal'
+            }} className="text-xs md:text-sm lg:text-md xl:text-xl">
+              {index + 1} - {user.username} : {user.games_played}
+            </p>
+          ))}
+
         </div>
       </div>
     </div>
   );
 }
 
-export default App;
+export default Leaderboard;
+
+
+
+
+
+
+

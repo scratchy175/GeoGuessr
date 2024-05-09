@@ -7,10 +7,10 @@ const footer = () => {
         <footer>
             <div>
                 <Link href="/help">
-                    <a>Help</a>
+                    <a>Aide</a>
                 </Link>
                 <Link href="/about">
-                    <a>About</a>
+                    <a>Àpropos</a>
                 </Link>
             </div>
         </footer>
