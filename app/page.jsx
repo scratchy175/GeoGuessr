@@ -3,11 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useGameActions } from "@/hooks/useGameActions";
 
 const popupStyle = {
-  backgroundImage: "url('/main/fondvierge.png')",
+  backgroundImage: "url('/profil/fondvierge.png')",
+  //backgroundSize: '100% 100%',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   //maxWidth: '600px',
-  width: '50%',
+  width: '30%',
   //height: '100%',
   display: 'flex',
   flexDirection: 'column',
@@ -17,11 +18,13 @@ const popupStyle = {
   boxSizing: 'border-box',
 };
 
-const GameParametersPopup = ({ onTimeChange, onClose, onConfirm }) => {
-  const [seconds, setSeconds] = useState(300);
+const GameParametersPopup = ({ onTimeChange, onClose, onConfirm, initialTime }) => {
+  const [seconds, setSeconds] = useState(initialTime);
+
   const handleSliderChange = (event) => {
-    setSeconds(event.target.value);
-    onTimeChange(event.target.value);
+    const newTime = parseInt(event.target.value, 10);
+    setSeconds(newTime);
+    onTimeChange(newTime);  // Directly pass the number to onTimeChange
   };
 
   // Function to format the seconds into a minute:second format
@@ -34,38 +37,47 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm }) => {
   };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div 
-  className="rounded-lg p-5"
-  style={popupStyle}
->
-        <h2 className='text-black'>Select Game Parameters</h2>
-        
+      <div
+        className=" flex flex-col gap-10 rounded-lg p-5"
+        style={popupStyle}>
+        <h2 className='text-black '>Select Game Parameters</h2>
+
         <div className="p-4">
-      <label htmlFor="time-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">
-        Game Time
-      </label>
-      <div className="relative w-full"> {/* Container for the slider with fixed width */}
-        <input
-          id="time-range"
-          type="range"
-          min="0"
-          max="600"
-          step="10"
-          value={seconds}
-          onChange={handleSliderChange}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-        />
-        <div className="absolute w-full text-center mt-2 text-sm font-medium text-gray-900 dark:text-black">
-          {formatTime(seconds)}
+          <label htmlFor="time-range" className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">
+            Game Time
+          </label>
+          <div className="relative w-full"> {/* Container for the slider with fixed width */}
+            <input
+              id="time-range"
+              type="range"
+              min="0"
+              max="600"
+              step="10"
+              value={seconds}
+              onChange={handleSliderChange}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+            />
+            <div className="absolute w-full text-center mt-2 text-sm font-medium text-gray-900 dark:text-black">
+              {formatTime(seconds)}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
 
 
         <div className='space-x-48 flex flex-row'>
-          <button onClick={onClose} className='text-black' >Annuler</button>
-          <button onClick={onConfirm} className='text-black'>Démarrer le jeu</button>
+          <button
+            className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            onClick={onClose}>
+            Cancel
+          </button>
+
+          <button
+            className="px-4 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            onClick={onConfirm}>
+            Confirm
+          </button>
+
         </div>
       </div>
     </div>
@@ -77,7 +89,7 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm }) => {
 const App = () => {
   const { handlePlayClick } = useGameActions();
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [gameTime, setGameTime] = useState(0);
+  const [gameTime, setGameTime] = useState(300);  // Starting with a default value
 
   useEffect(() => {
     // Prevent scrolling when the app is fullscreen.
@@ -137,27 +149,28 @@ const App = () => {
         }}
       >
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
-        
-      <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
-        style={{
-          bottom: '26%',
-          left: '-21%',
-          position: 'absolute',
-        }}
-        onClick={showParametersPopup}
-      >
-    <p>Démarrer l&apos;exploration</p>
-      </button>
+
+        <button
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
+          style={{
+            bottom: '26%',
+            left: '-21%',
+            position: 'absolute',
+          }}
+          onClick={showParametersPopup}
+        >
+          <p>Démarrer l&apos;exploration</p>
+        </button>
       </div>
 
       {
         isPopupVisible && (
           <GameParametersPopup
+            initialTime={gameTime}
             onTimeChange={setGameTime}
             onClose={() => setIsPopupVisible(false)}
             onConfirm={() => {
-              handlePlayClick(gameTime.toString()); // Ensure gameTime is passed as a string
+              handlePlayClick(gameTime);
               setIsPopupVisible(false);
             }}
           />
