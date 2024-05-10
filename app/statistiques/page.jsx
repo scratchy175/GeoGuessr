@@ -4,8 +4,8 @@ import { getTotalGames } from '@/services/getTotalGames';
 import { getNumberAccounts } from '@/services/getNumberAccounts';
 
 const App = () => {
-  const [totalGames, setTotalGames] = useState(0);
-  const [numberAccounts, setNumberAccounts] = useState(0);
+  const [totalGames, setTotalGames] = useState("Chargement");
+  const [numberAccounts, setNumberAccounts] = useState("Chargement");
 
   useEffect(() => {
     const fetchData = async () => {
