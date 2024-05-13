@@ -36,3 +36,9 @@ model Round {
   map_point  String
   game       Game   @relation(fields: [game_id], references: [game_id])
 }
+
+model Demo {
+  demo_id  Int    @id @default(autoincrement())
+  pseudo   String
+  score    Int
+}

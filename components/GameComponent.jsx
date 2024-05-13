@@ -10,6 +10,7 @@ import MapContainer from './MapContainer';
 import Result from './Result';
 import { addRound } from '@/services/addRound';
 import { getRounds } from '@/services/getRounds';
+import { addDemo } from '@/services/addDemo';
 
 import './style.css';
 
@@ -61,12 +62,13 @@ const GameComponent = ({ params }) => {
 
 
   const demo = JSON.parse(sessionStorage.getItem('demo'));
-  const maxRound = 5;
+  const maxRound = 2;
+  const carte = demo ? 'Démo' : 'Monde';
 
   const demoLocations = [
     [48.860984, 2.351587],
     [48.8056502, 2.1367432],
-    [41.9007724, 12.483413],
+    [41.9007574,12.4832856],
     [35.70407437075822, 139.55773173046032],
     [25.2048768, 55.2708828]
   ];
@@ -75,7 +77,6 @@ const GameComponent = ({ params }) => {
 
 const addRoundToList = useCallback((newRound) => {
   roundsListRef.current = [...roundsListRef.current, newRound];
-  console.log(roundsListRef.current);
 }, []);
 
   const resetTimer = (newTime = gameTime) => {
@@ -193,7 +194,6 @@ const addRoundToList = useCallback((newRound) => {
     const randomFeatureIndex = Math.floor(Math.random() * features.length);
     const randomFeature = features[randomFeatureIndex];
     const randomLocation = generateRandomPointInFeature(randomFeature);
-    console.log('Random location:', randomLocation);
 
     if (streetViewServiceRef.current) {
       console.log('Fetching Street View data...');
@@ -238,7 +238,6 @@ const addRoundToList = useCallback((newRound) => {
 
       const options = { units: 'kilometers' };
       const distance2 = distance(from, to, options);
-      console.log(distance2);
       score.current = Math.round(5000 * Math.exp(-10 * distance2 / 16000));
       totalScore.current += score.current;
       distanceG.current = Math.round(distance2);
@@ -334,7 +333,7 @@ const addRoundToList = useCallback((newRound) => {
       window.line.setMap(null);
     }
     window.marker2.setMap(null);
-    if (round.current === 2) {
+    if (round.current === maxRound) {
       setEndGame(true);
       handleEndGame();
       return;
@@ -369,7 +368,7 @@ const addRoundToList = useCallback((newRound) => {
           }
 
           const markerDiv = document.createElement('img');
-          markerDiv.src = '/Marker5.webp';
+          markerDiv.src = '/Marker5.png';
           markerDiv.style.height = '50px';
 
           markerDiv.style.className = 'custom-marker transform translate-y-2';
@@ -418,11 +417,14 @@ const addRoundToList = useCallback((newRound) => {
 
 
   const handleEndGame = () => {
+    if (demo) {
+      addDemo(sessionStorage.getItem('pseudo'), totalScore.current);
+    }
     const bounds = new google.maps.LatLngBounds();
-    const getRoundData = demo ? Promise.resolve(roundsListRef.current) : getRounds(params.id).result;
-    console.log(getRoundData);
+    const getRoundData = demo 
+    ? Promise.resolve(roundsListRef.current) 
+    : getRounds(params.id).then(response => response.result);
     getRoundData.then((rounds) => {
-      console.log('Rounds:', rounds);
       rounds.forEach((round) => {
         const locationParts = round.map_point.replace(/[()]/g, '').split(', ');
         const locationObject = {
@@ -435,7 +437,7 @@ const addRoundToList = useCallback((newRound) => {
           lat: parseFloat(userLocationParts[0]),
           lng: parseFloat(userLocationParts[1])
         };
-        addResultMarker(userLocationObject, '/Marker5.webp');
+        addResultMarker(userLocationObject, '/Marker5.png');
         drawLine(userLocationObject, locationObject);
         bounds.extend(userLocationObject);
 
@@ -515,6 +517,7 @@ const addRoundToList = useCallback((newRound) => {
           setTimeLeft={setTimeLeft}
           handleTimerComplete={handleTimerComplete}
           maxRound = {maxRound}
+          carte = {carte}
         />
         {<div ref={streetViewElementRef}
           className="w-full h-full relative">

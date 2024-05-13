@@ -63,10 +63,8 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm, initialTime }) 
             </div>
           </div>
         </div>
+        <div className="flex justify-between w-full mt-4">
 
-
-
-        <div className='space-x-48 flex flex-row'>
           <button
             className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
             onClick={onClose}>
@@ -87,34 +85,70 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm, initialTime }) 
 
 const PseudoPopup = ({ onClose, onConfirm, setPseudo }) => {
   const [pseudo, setPseudoLocal] = useState("");
+  const [showError, setShowError] = useState(false);  // New state for showing error message
   const router = useRouter();
 
-
   const handleConfirm = () => {
+    console.log(showError);
+    if (!pseudo.trim()) {
+      setShowError(true);  // Set showError to true if pseudo is empty or whitespace
+      return;  // Prevent further action
+    }
+    setShowError(false);  // Reset error state on successful pseudo entry
     setPseudo(pseudo);  // Update the pseudo state in parent component
     onConfirm();        // Handle additional actions on confirm
     sessionStorage.setItem('gameTime', 20);
     sessionStorage.setItem('demo', true);
+    sessionStorage.setItem('pseudo', pseudo);
     const randomID = generateRandomID();
     router.push(`/game/${randomID}`);
   };
 
+  const centerStyle = {
+    backgroundImage: "url('/profil/fondvierge.png')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'absolute', // Absolute positioning
+    top: '50%',           // Center vertically
+    left: '50%',          // Center horizontally
+    transform: 'translate(-50%, -50%)', // Offset the element by its own dimensions to center
+    width: '30%',         // Set a specific width or keep it responsive
+    display: 'flex',      // Flexbox for internal centering
+    flexDirection: 'column',
+    alignItems: 'center', // Center items horizontally in the flex container
+    //color: 'white',  // Background color for visibility
+    padding: '20px',      // Padding around the content
+    borderRadius: '8px',  // Rounded corners
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)' // Box shadow for a subtle depth effect
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="flex flex-col gap-3 bg-white p-4 rounded-lg">
+      <div style={centerStyle}>
         <input
           type="text"
-          placeholder="Enter your pseudo"
+          placeholder="Entrez votre pseudo"
           value={pseudo}
           onChange={(e) => setPseudoLocal(e.target.value)}
           className="p-2 border border-gray-300 rounded"
         />
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleConfirm}
-        >
-          Confirm
-        </button>
+        {showError && (
+          <div className="text-red-500 text-sm mt-2">Veuillez entrer un pseudo.</div>  // Error message display
+        )}
+        <div className="flex justify-between w-full mt-4">
+          <button
+            className="bg-red-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+            onClick={onClose}
+          >
+            Annuler
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+            onClick={handleConfirm}
+          >
+            Confirmer
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -189,20 +223,20 @@ const App = () => {
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
 
         <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
-        style={{ position: 'absolute', bottom: '10%' }}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
+          style={{
+            padding: '12px 40px',  // Increased padding for larger size
+            //fontSize: '18px',      // Larger font size for better readability
+            position: 'absolute',
+            bottom: '16%',
+            left: '-17%'
+          }}  
         onClick={() => setIsPseudoPopupVisible(true)}
       >
-        Set Pseudonym
+        Démo
       </button>
 
-      {isPseudoPopupVisible && (
-        <PseudoPopup
-          setPseudo={setPseudo}
-          onClose={() => setIsPseudoPopupVisible(false)}
-          onConfirm={() => setIsPseudoPopupVisible(false)}
-        />
-      )}
+      
         <button
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
           style={{
@@ -229,6 +263,13 @@ const App = () => {
           />
         )
       }
+      {isPseudoPopupVisible && (
+        <PseudoPopup
+          setPseudo={setPseudo}
+          onClose={() => setIsPseudoPopupVisible(false)}
+          onConfirm={() => setIsPseudoPopupVisible(false)}
+        />
+      )}
     </div>
   );
 }

@@ -26,8 +26,8 @@ export function generateRandomID(length = 16) {
         console.log(gameTime);
         router.push(`/game/${randomID}`);
       } else {
-        console.log("No session found, redirecting to login.");
         // Handle no session
+        alert("Vous devez être connecté pour jouer.");
       }
     };
   
