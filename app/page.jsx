@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { useGameActions } from "@/hooks/useGameActions";
+import { useGameActions, generateRandomID } from "@/hooks/useGameActions";
+import { useRouter } from 'next/navigation';
 
 const popupStyle = {
   backgroundImage: "url('/profil/fondvierge.png')",
@@ -69,16 +70,51 @@ const GameParametersPopup = ({ onTimeChange, onClose, onConfirm, initialTime }) 
           <button
             className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
             onClick={onClose}>
-            Cancel
+            Annuler
           </button>
 
           <button
             className="px-4 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             onClick={onConfirm}>
-            Confirm
+            Confirmer
           </button>
 
         </div>
+      </div>
+    </div>
+  );
+};
+
+const PseudoPopup = ({ onClose, onConfirm, setPseudo }) => {
+  const [pseudo, setPseudoLocal] = useState("");
+  const router = useRouter();
+
+
+  const handleConfirm = () => {
+    setPseudo(pseudo);  // Update the pseudo state in parent component
+    onConfirm();        // Handle additional actions on confirm
+    sessionStorage.setItem('gameTime', 20);
+    sessionStorage.setItem('demo', true);
+    const randomID = generateRandomID();
+    router.push(`/game/${randomID}`);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div className="flex flex-col gap-3 bg-white p-4 rounded-lg">
+        <input
+          type="text"
+          placeholder="Enter your pseudo"
+          value={pseudo}
+          onChange={(e) => setPseudoLocal(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={handleConfirm}
+        >
+          Confirm
+        </button>
       </div>
     </div>
   );
@@ -90,6 +126,8 @@ const App = () => {
   const { handlePlayClick } = useGameActions();
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [gameTime, setGameTime] = useState(300);  // Starting with a default value
+  const [isPseudoPopupVisible, setIsPseudoPopupVisible] = useState(false);
+  const [pseudo, setPseudo] = useState("");
 
   useEffect(() => {
     // Prevent scrolling when the app is fullscreen.
@@ -150,6 +188,21 @@ const App = () => {
       >
         <img src="/main/globe.svg" alt="Globe" style={{ width: '100%' }} />
 
+        <button
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
+        style={{ position: 'absolute', bottom: '10%' }}
+        onClick={() => setIsPseudoPopupVisible(true)}
+      >
+        Set Pseudonym
+      </button>
+
+      {isPseudoPopupVisible && (
+        <PseudoPopup
+          setPseudo={setPseudo}
+          onClose={() => setIsPseudoPopupVisible(false)}
+          onConfirm={() => setIsPseudoPopupVisible(false)}
+        />
+      )}
         <button
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-full shadow-md flex justify-center items-center"
           style={{

@@ -60,8 +60,23 @@ const GameComponent = ({ params }) => {
   const [timeLeft, setTimeLeft] = useState(gameTime);
 
 
+  const demo = JSON.parse(sessionStorage.getItem('demo'));
+  const maxRound = 5;
 
+  const demoLocations = [
+    [48.860984, 2.351587],
+    [48.8056502, 2.1367432],
+    [41.9007724, 12.483413],
+    [35.70407437075822, 139.55773173046032],
+    [25.2048768, 55.2708828]
+  ];
 
+  const roundsListRef = useRef([]);
+
+const addRoundToList = useCallback((newRound) => {
+  roundsListRef.current = [...roundsListRef.current, newRound];
+  console.log(roundsListRef.current);
+}, []);
 
   const resetTimer = (newTime = gameTime) => {
     setTimeLeft(newTime);
@@ -118,9 +133,18 @@ const GameComponent = ({ params }) => {
 
         streetViewServiceRef.current = new google.maps.StreetViewService();
         // Chargement des données GeoJSON.
-        const data = await fetchGeoJsonData();
-        setGlobalGeoJsonData(data);
-        showRandomStreetView(data.features);
+
+        if (!demo) {
+          console.log('Fetching GeoJSON data...');
+          const data = await fetchGeoJsonData();
+          setGlobalGeoJsonData(data);
+          showRandomStreetView(data.features);
+        }
+        else{
+          demoStreetView(0);
+          
+        }
+        
       } catch (error) {
         console.error("Failed to initialize map or fetch GeoJSON:", error);
       }
@@ -128,6 +152,20 @@ const GameComponent = ({ params }) => {
 
     initMap();
   }, []);
+
+  const demoStreetView = (index) => {
+    const panorama = new google.maps.StreetViewPanorama(streetViewElementRef.current, {
+      position: { lat: demoLocations[index][0], lng: demoLocations[index][1] },
+      pov: { heading: 0, pitch: 0 },
+      disableDefaultUI: true,
+      zoomControl: true,
+      showRoadLabels: false,
+    });
+    mapRef.current.setStreetView(panorama);
+    setWaitingScreen(false);
+    setInitialStreetViewLocation({ lat: demoLocations[index][0], lng: demoLocations[index][1] });
+
+  }
 
   const moveMapAndResize = useCallback(() => {
 
@@ -197,6 +235,7 @@ const GameComponent = ({ params }) => {
       };
       const from = [user_position.lng, user_position.lat];
       const to = [initialStreetViewLocation.lng, initialStreetViewLocation.lat];
+
       const options = { units: 'kilometers' };
       const distance2 = distance(from, to, options);
       console.log(distance2);
@@ -220,7 +259,12 @@ const GameComponent = ({ params }) => {
     }, 100);
     const mapPointString = `(${initialStreetViewLocation.lat}, ${initialStreetViewLocation.lng})`;
     const userPointString = `(${window.marker?.position.lat}, ${window.marker?.position.lng})`;
+    if (!demo){
     addRound(params.id, round.current, score.current, distanceG.current, gameTime - timeLeft, userPointString, mapPointString)
+    }
+    else{
+      addRoundToList({round_nb: round.current, score: score.current, distance: distanceG.current, time: gameTime - timeLeft, user_point: userPointString, map_point: mapPointString});
+    }
 
   }, [initialStreetViewLocation, moveMapAndResize]);
 
@@ -298,13 +342,19 @@ const GameComponent = ({ params }) => {
     moveMapAndResize();
     //streetViewPanorama.current.setVisible(false);
     setWaitingScreen(true);
-    showRandomStreetView(globalGeoJsonData.features);
+    round.current++;
+    if (!demo){
+      showRandomStreetView(globalGeoJsonData.features);
+    }
+    else{
+      demoStreetView(round.current-1);
+    }
     console.log('Next round');
 
 
     mapRef.current.setZoom(2);
     mapRef.current.setCenter({ lat: 0, lng: 0 });
-    round.current++;
+    
     isGuessB(false);
     resetTimer();
     score.current = 0;
@@ -369,9 +419,11 @@ const GameComponent = ({ params }) => {
 
   const handleEndGame = () => {
     const bounds = new google.maps.LatLngBounds();
-    getRounds(params.id).then((rounds) => {
-      console.log('Rounds:', rounds.result);
-      rounds.result.forEach((round) => {
+    const getRoundData = demo ? Promise.resolve(roundsListRef.current) : getRounds(params.id).result;
+    console.log(getRoundData);
+    getRoundData.then((rounds) => {
+      console.log('Rounds:', rounds);
+      rounds.forEach((round) => {
         const locationParts = round.map_point.replace(/[()]/g, '').split(', ');
         const locationObject = {
           lat: parseFloat(locationParts[0]),
@@ -398,10 +450,11 @@ const GameComponent = ({ params }) => {
           , 1000);
 
       });
-    });
-    setTimeout(() => {
       mapRef.current.fitBounds(bounds);
-    }, 500);
+    });
+    // setTimeout(() => {
+    //   mapRef.current.fitBounds(bounds);
+    // }, 500);
     console.log('End game');
 
   }
@@ -461,6 +514,7 @@ const GameComponent = ({ params }) => {
           timeLeft={timeLeft}
           setTimeLeft={setTimeLeft}
           handleTimerComplete={handleTimerComplete}
+          maxRound = {maxRound}
         />
         {<div ref={streetViewElementRef}
           className="w-full h-full relative">
