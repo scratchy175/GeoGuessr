@@ -62,7 +62,7 @@ const GameComponent = ({ params }) => {
 
 
   const demo = JSON.parse(sessionStorage.getItem('demo'));
-  const maxRound = 2;
+  const maxRound = 5;
   const carte = demo ? 'Démo' : 'Monde';
 
   const demoLocations = [
